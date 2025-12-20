@@ -18,7 +18,7 @@ Spatie's MediaLibrary to manage documents
 PrimeVue vue components and icons. 
 
 # Code Format and Rules
-All functions should be camelCased, and all variables should be snake cased. This is for PHP, Javascript, CSS, and HTML 
+All code (PHP, JavaScript, CSS, etc) should strictly follow the PSR 12 rules https://www.php-fig.org/psr/psr-12/
 Optimize all JavaScript imports, except PrimeVue's Editor component.
 All confirmation dialog's should use PrimeVue's ConfirmDialog component.
 All flash messages should use PrimeVue's Message component.
@@ -37,6 +37,7 @@ Create css variables for all of Tailwind's Purple, called --color-primary-
 Create css variables for all of Tailwind's Lime, called --color-accent-
 Create css variables for all of Tailwind's Stone, called --color-darker-
 Always create classes using Tailwind
+Always use PrimeVue Select instead of Dropdown
 
 # Schema
 

@@ -1,15 +1,16 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import InputText from 'primevue/inputtext';
-import Dropdown from 'primevue/dropdown';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
+import { Button, Card, InputText, Select } from 'primevue';
 
 const props = defineProps({
     course: {
         type: Object,
         default: null,
+    },
+    status_options: {
+        type: Array,
+        required: true,
     },
 });
 
@@ -20,12 +21,6 @@ const form = useForm({
     title: props.course?.title || '',
     code: props.course?.code || '',
 });
-
-const status_options = [
-    { label: 'Draft', value: 'Draft' },
-    { label: 'Published', value: 'Published' },
-    { label: 'Archived', value: 'Archived' },
-];
 
 const submit = () => {
     if (is_editing.value) {
@@ -79,7 +74,7 @@ const cancel = () => {
                                     Status
                                     <span class="text-red-500">*</span>
                                 </label>
-                                <Dropdown
+                                <Select
                                     id="status"
                                     v-model="form.status"
                                     :options="status_options"

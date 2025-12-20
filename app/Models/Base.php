@@ -19,9 +19,9 @@ abstract class Base extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'created_at' => 'datetime:m/d/Y h:i A',
+        'updated_at' => 'datetime:m/d/Y h:i A',
+        'deleted_at' => 'datetime:m/d/Y h:i A',
     ];
 
     /**
@@ -52,6 +52,69 @@ abstract class Base extends Model
                 $model->save();
             }
         });
+
+        // Activity logging
+        static::created(function ($model) {
+            if (auth()->check()) {
+                activity()
+                    ->performedOn($model)
+                    ->causedBy(auth()->user())
+                    ->log(class_basename($model) . ' created');
+            }
+        });
+
+        static::updated(function ($model) {
+            if (auth()->check()) {
+                activity()
+                    ->performedOn($model)
+                    ->causedBy(auth()->user())
+                    ->log(class_basename($model) . ' updated');
+            }
+        });
+
+        static::deleted(function ($model) {
+            if (auth()->check()) {
+                activity()
+                    ->performedOn($model)
+                    ->causedBy(auth()->user())
+                    ->log(class_basename($model) . ' deleted');
+            }
+        });
+
+        static::restored(function ($model) {
+            if (auth()->check()) {
+                activity()
+                    ->performedOn($model)
+                    ->causedBy(auth()->user())
+                    ->log(class_basename($model) . ' restored');
+            }
+        });
+
+        static::forceDeleted(function ($model) {
+            if (auth()->check()) {
+                activity()
+                    ->performedOn($model)
+                    ->causedBy(auth()->user())
+                    ->log(class_basename($model) . ' permanently deleted');
+            }
+        });
+    }
+
+
+    /**
+     * Load default relationships.
+     *
+     * @return array
+     */
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        if (static::class !== User::class) {
+            static::retrieved(function ($model) {
+                $model->loadMissing(['created_by', 'updated_by', 'deleted_by']);
+            });
+        }
     }
 
     /**
@@ -85,7 +148,7 @@ abstract class Base extends Model
      *
      * @return BelongsTo
      */
-    public function createdBy(): BelongsTo
+    public function created_by(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_id');
     }
@@ -95,7 +158,7 @@ abstract class Base extends Model
      *
      * @return BelongsTo
      */
-    public function updatedBy(): BelongsTo
+    public function updated_by(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by_id');
     }
@@ -105,24 +168,9 @@ abstract class Base extends Model
      *
      * @return BelongsTo
      */
-    public function deletedBy(): BelongsTo
+    public function deleteD_by(): BelongsTo
     {
         return $this->belongsTo(User::class, 'deleted_by_id');
     }
 
-    /**
-     * Load default relationships.
-     *
-     * @return array
-     */
-    protected static function booted(): void
-    {
-        parent::booted();
-
-        if (static::class !== User::class) {
-            static::retrieved(function ($model) {
-                $model->loadMissing(['createdBy', 'updatedBy', 'deletedBy']);
-            });
-        }
-    }
 }
