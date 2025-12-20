@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CourseUser extends Base
 {
-    use HasFactory;
-
     /**
      * The table associated with the model.
      *
@@ -24,10 +21,7 @@ class CourseUser extends Base
     protected $fillable = [
         'course_id',
         'user_id',
-        'is_instructor',
-        'created_by_id',
-        'updated_by_id',
-        'deleted_by_id',
+        'is_instructor'
     ];
 
     /**

@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserProgress extends Base
 {
-    use HasFactory;
-
     /**
      * The table associated with the model.
      *
@@ -24,10 +21,7 @@ class UserProgress extends Base
     protected $fillable = [
         'user_id',
         'course_id',
-        'page_id',
-        'created_by_id',
-        'updated_by_id',
-        'deleted_by_id',
+        'page_id'
     ];
 
     /**

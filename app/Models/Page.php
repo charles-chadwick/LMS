@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -11,7 +10,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Page extends Base implements HasMedia
 {
-    use HasFactory;
     use InteractsWithMedia;
 
     /**
@@ -24,10 +22,7 @@ class Page extends Base implements HasMedia
         'order',
         'status',
         'title',
-        'content',
-        'created_by_id',
-        'updated_by_id',
-        'deleted_by_id',
+        'content'
     ];
 
     /**
