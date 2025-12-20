@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+    /* Primary Colors (Purple) */
+    --color-primary-50: #faf5ff;
+    --color-primary-100: #f3e8ff;
+    --color-primary-200: #e9d5ff;
+    --color-primary-300: #d8b4fe;
+    --color-primary-400: #c084fc;
+    --color-primary-500: #a855f7;
+    --color-primary-600: #9333ea;
+    --color-primary-700: #7e22ce;
+    --color-primary-800: #6b21a8;
+    --color-primary-900: #581c87;
+    --color-primary-950: #3b0764;
+
+    /* Accent Colors (Lime) */
+    --color-accent-50: #f7fee7;
+    --color-accent-100: #ecfccb;
+    --color-accent-200: #d9f99d;
+    --color-accent-300: #bef264;
+    --color-accent-400: #a3e635;
+    --color-accent-500: #84cc16;
+    --color-accent-600: #65a30d;
+    --color-accent-700: #4d7c0f;
+    --color-accent-800: #3f6212;
+    --color-accent-900: #365314;
+    --color-accent-950: #1a2e05;
+
+    /* Darker Colors (Stone) */
+    --color-darker-50: #fafaf9;
+    --color-darker-100: #f5f5f4;
+    --color-darker-200: #e7e5e4;
+    --color-darker-300: #d6d3d1;
+    --color-darker-400: #a8a29e;
+    --color-darker-500: #78716c;
+    --color-darker-600: #57534e;
+    --color-darker-700: #44403c;
+    --color-darker-800: #292524;
+    --color-darker-900: #1c1917;
+    --color-darker-950: #0c0a09;
+}
+
+/* PrimeVue Theme Overrides */
+:root {
+    --p-primary-50: var(--color-primary-50);
+    --p-primary-100: var(--color-primary-100);
+    --p-primary-200: var(--color-primary-200);
+    --p-primary-300: var(--color-primary-300);
+    --p-primary-400: var(--color-primary-400);
+    --p-primary-500: var(--color-primary-500);
+    --p-primary-600: var(--color-primary-600);
+    --p-primary-700: var(--color-primary-700);
+    --p-primary-800: var(--color-primary-800);
+    --p-primary-900: var(--color-primary-900);
+    --p-primary-950: var(--color-primary-950);
+
+    --p-surface-0: #ffffff;
+    --p-surface-50: var(--color-darker-50);
+    --p-surface-100: var(--color-darker-100);
+    --p-surface-200: var(--color-darker-200);
+    --p-surface-300: var(--color-darker-300);
+    --p-surface-400: var(--color-darker-400);
+    --p-surface-500: var(--color-darker-500);
+    --p-surface-600: var(--color-darker-600);
+    --p-surface-700: var(--color-darker-700);
+    --p-surface-800: var(--color-darker-800);
+    --p-surface-900: var(--color-darker-900);
+    --p-surface-950: var(--color-darker-950);
+}
