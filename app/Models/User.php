@@ -15,13 +15,16 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\MediaLibrary\HasMedia as HasMediaContract;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Base implements
     AuthenticatableContract,
     AuthorizableContract,
-    CanResetPasswordContract
+    CanResetPasswordContract,
+    HasMediaContract
 {
     use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail;
 
@@ -30,6 +33,7 @@ class User extends Base implements
     use SoftDeletes;
     use HasRoles;
     use LogsActivity;
+    use InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
