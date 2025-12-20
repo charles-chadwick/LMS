@@ -14,7 +14,7 @@ Route::prefix('courses')->name('courses.')->group(function () {
     // Store new course
     Route::post('/', [CourseController::class, 'store'])->name('store');
 
-    // Show single course
+    // Show a single course
     Route::get('/{course}', [CourseController::class, 'show'])->name('show');
 
     // Show edit form

@@ -2,9 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -12,8 +18,13 @@ use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class User extends Authenticatable
+class User extends Base implements
+    AuthenticatableContract,
+    AuthorizableContract,
+    CanResetPasswordContract
 {
+    use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail;
+
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
@@ -31,13 +42,7 @@ class User extends Authenticatable
         'last_name',
         'email',
         'password',
-        'email_verified_at',
-        'created_at',
-        'updated_at',
-        'deleted_at',
-        'created_by_id',
-        'updated_by_id',
-        'deleted_by_id',
+        'email_verified_at'
     ];
 
     /**
