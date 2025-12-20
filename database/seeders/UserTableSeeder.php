@@ -67,14 +67,14 @@ class UserTableSeeder extends Seeder
 
             $role = match (true) {
                 $index <= 3  => UserRole::Admin,
-                $index <= 7  => UserRole::Manager,
-                default      => UserRole::SalesRep,
+                $index <= 7  => UserRole::Instructor,
+                default      => UserRole::Student,
             };
 
             $role_name = match ($role) {
                 UserRole::Admin => 'Admin',
-                UserRole::Manager => 'Manager',
-                default => 'Sales Rep',
+                UserRole::Instructor => 'Instructor',
+                default => 'Student',
             };
 
             $staff_user = User::factory()
