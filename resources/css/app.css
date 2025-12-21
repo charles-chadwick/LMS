@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-:root {
+@theme {
     /* Primary Colors (Purple) */
     --color-primary-50: #faf5ff;
     --color-primary-100: #f3e8ff;
@@ -39,10 +39,9 @@
     --color-darker-800: #292524;
     --color-darker-900: #1c1917;
     --color-darker-950: #0c0a09;
-}
 
 /* PrimeVue Theme Overrides */
-:root {
+
     --p-primary-50: var(--color-primary-50);
     --p-primary-100: var(--color-primary-100);
     --p-primary-200: var(--color-primary-200);
