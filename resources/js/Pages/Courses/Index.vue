@@ -5,6 +5,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import { Select, InputText, Button, Card, IconField, InputIcon, ConfirmDialog, Tag }from 'primevue';
 
 import Pagination from '@/Components/Pagination.vue';
+import AppLayout from "@/Layouts/AppLayout.vue";
 
 const props = defineProps({
     courses: {
@@ -86,20 +87,21 @@ const createCourse = () => {
 </script>
 
 <template>
+  <AppLayout>
     <Head title="Courses" />
 
     <ConfirmDialog />
 
-    <div class="min-h-screen bg-stone-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
+    <div class="min-h-screen bg-darker-50 py-8 px-4 sm:px-6 lg:px-8">
+
             <!-- Header -->
             <div class="mb-8">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-stone-900">
+                        <h1 class="text-3xl font-bold text-darker-900">
                             Courses
                         </h1>
-                        <p class="mt-2 text-sm text-stone-600">
+                        <p class="mt-2 text-sm text-darker-600">
                             Manage and organize your courses
                         </p>
                     </div>
@@ -119,7 +121,7 @@ const createCourse = () => {
                         <div>
                             <label
                                 for="search"
-                                class="block mb-2 font-semibold text-sm text-stone-700"
+                                class="block mb-2 font-semibold text-sm text-darker-700"
                             >
                                 Search
                             </label>
@@ -137,7 +139,7 @@ const createCourse = () => {
                         <div>
                             <label
                                 for="status"
-                                class="block mb-2 font-semibold text-sm text-stone-700"
+                                class="block mb-2 font-semibold text-sm text-darker-700"
                             >
                                 Status
                             </label>
@@ -159,9 +161,9 @@ const createCourse = () => {
             <Card class="shadow-lg">
                 <template #content>
                     <div v-if="courses.data.length === 0" class="text-center py-12">
-                        <i class="pi pi-inbox text-6xl text-stone-300 mb-4"></i>
-                        <p class="text-stone-500 text-lg mb-2">No courses found</p>
-                        <p class="text-stone-400 text-sm mb-6">
+                        <i class="pi pi-inbox text-6xl text-darker-300 mb-4"></i>
+                        <p class="text-darker-500 text-lg mb-2">No courses found</p>
+                        <p class="text-darker-400 text-sm mb-6">
                             {{ search || status_filter ? 'Try adjusting your filters' : 'Get started by creating your first course' }}
                         </p>
                         <Button
@@ -175,26 +177,26 @@ const createCourse = () => {
                     <div v-else class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
-                                <tr class="border-b border-stone-200">
-                                    <th class="text-left py-4 px-4 font-semibold text-sm text-stone-700">
+                                <tr class="border-b border-darker-200">
+                                    <th class="text-left py-4 px-4 font-semibold text-sm text-darker-700">
                                         Code
                                     </th>
-                                    <th class="text-left py-4 px-4 font-semibold text-sm text-stone-700">
+                                    <th class="text-left py-4 px-4 font-semibold text-sm text-darker-700">
                                         Title
                                     </th>
-                                    <th class="text-left py-4 px-4 font-semibold text-sm text-stone-700">
+                                    <th class="text-left py-4 px-4 font-semibold text-sm text-darker-700">
                                         Status
                                     </th>
-                                    <th class="text-center py-4 px-4 font-semibold text-sm text-stone-700">
+                                    <th class="text-center py-4 px-4 font-semibold text-sm text-darker-700">
                                         Pages
                                     </th>
-                                    <th class="text-center py-4 px-4 font-semibold text-sm text-stone-700">
+                                    <th class="text-center py-4 px-4 font-semibold text-sm text-darker-700">
                                         Students
                                     </th>
-                                    <th class="text-center py-4 px-4 font-semibold text-sm text-stone-700">
+                                    <th class="text-center py-4 px-4 font-semibold text-sm text-darker-700">
                                         Instructors
                                     </th>
-                                    <th class="text-right py-4 px-4 font-semibold text-sm text-stone-700">
+                                    <th class="text-right py-4 px-4 font-semibold text-sm text-darker-700">
                                         Actions
                                     </th>
                                 </tr>
@@ -203,17 +205,17 @@ const createCourse = () => {
                                 <tr
                                     v-for="course in courses.data"
                                     :key="course.id"
-                                    class="border-b border-stone-100 hover:bg-stone-50 transition-colors"
+                                    class="border-b border-darker-100 hover:bg-darker-50 transition-colors"
                                 >
                                     <td class="py-4 px-4">
-                                        <span class="font-mono text-sm text-stone-700 font-semibold">
+                                        <span class="font-mono text-sm text-darker-700 font-semibold">
                                             {{ course.code }}
                                         </span>
                                     </td>
                                     <td class="py-4 px-4">
                                         <Link
                                             :href="route('courses.show', course.id)"
-                                            class="text-purple-600 hover:text-purple-800 font-medium hover:underline"
+                                            class="text-primary-600 hover:text-primary-800 font-medium hover:underline"
                                         >
                                             {{ course.title }}
                                         </Link>
@@ -225,17 +227,17 @@ const createCourse = () => {
                                         />
                                     </td>
                                     <td class="py-4 px-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 text-sm font-semibold">
                                             {{ course.pages_count }}
                                         </span>
                                     </td>
                                     <td class="py-4 px-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-lime-100 text-lime-700 text-sm font-semibold">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent-100 text-accent-700 text-sm font-semibold">
                                             {{ course.students_count }}
                                         </span>
                                     </td>
                                     <td class="py-4 px-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-stone-200 text-stone-700 text-sm font-semibold">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-darker-200 text-darker-700 text-sm font-semibold">
                                             {{ course.instructors_count }}
                                         </span>
                                     </td>
@@ -273,15 +275,12 @@ const createCourse = () => {
                     </div>
 
                     <!-- Pagination -->
-                    <div v-if="courses.data.length > 0" class="mt-6 pt-6 border-t border-stone-200">
+                    <div v-if="courses.data.length > 0" class="mt-6 pt-6 border-t border-darker-200">
                         <Pagination :pagination="courses" />
                     </div>
                 </template>
             </Card>
-        </div>
-    </div>
-</template>
 
-<style scoped>
-/* Additional custom styles if needed */
-</style>
+    </div>
+  </AppLayout>
+</template>

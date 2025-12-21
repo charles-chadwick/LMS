@@ -29,8 +29,7 @@ class StoreCourseRequest extends FormRequest
         return [
             'status' => [
                 'required',
-                'string',
-                Rule::in(CourseStatus::values())
+                'string'
             ],
             'title'  => [
                 'required',
