@@ -24,10 +24,6 @@ return new class extends Migration
             $table->integer('updated_by_id')->nullable()->default(1);
             $table->integer('deleted_by_id')->nullable()->default(1);
 
-            $table->foreign('course_id')
-                ->references('id')
-                ->on('courses')
-                ->onDelete('cascade');
         });
     }
 
