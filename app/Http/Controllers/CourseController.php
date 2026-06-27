@@ -22,9 +22,11 @@ class CourseController extends Controller
     public function index(Request $request): Response
     {
         $query = Course::query()
-            ->with([
-                'instructors',
-                'students',
+            ->select([
+                'id',
+                'status',
+                'title',
+                'code',
             ])
             ->withCount([
                 'pages',
@@ -82,11 +84,13 @@ class CourseController extends Controller
     public function show(Course $course): Response
     {
         $course->load([
-            'pages',
-            'instructors',
-            'students',
-            'created_by',
-            'updated_by',
+            'pages' => function ($query) {
+                $query->select('id', 'course_id', 'order', 'status', 'title');
+            },
+            'instructors:id,first_name,last_name,email',
+            'students:id,first_name,last_name,email',
+            'created_by:id,first_name,last_name',
+            'updated_by:id,first_name,last_name',
         ]);
 
         $course->loadCount([
