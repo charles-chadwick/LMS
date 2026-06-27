@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -15,6 +16,10 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->in('Feature', 'Unit');
+
+// Breeze auth tests don't declare their own database trait, so apply one here.
+pest()->use(RefreshDatabase::class)
+    ->in('Feature/Auth');
 
 /*
 |--------------------------------------------------------------------------

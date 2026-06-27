@@ -1,10 +1,17 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Drawer from 'primevue/drawer';
 
 const sidebarVisible = ref(false);
+
+const page = usePage();
+const authUser = computed(() => page.props.auth?.user ?? null);
+const userDisplayName = computed(() => {
+    const user = authUser.value;
+    return user ? `${user.first_name} ${user.last_name}` : 'Guest';
+});
 
 const toggleSidebar = () => {
     sidebarVisible.value = !sidebarVisible.value;
@@ -116,10 +123,10 @@ const hasLogoutRoute = computed(() => {
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-primary-50 truncate">
-                  User Name
+                  {{ userDisplayName }}
                 </p>
                 <p class="text-xs text-primary-100 truncate">
-                  user@example.com
+                  {{ authUser?.email }}
                 </p>
               </div>
             </div>
@@ -183,10 +190,10 @@ const hasLogoutRoute = computed(() => {
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-semibold text-primary-50 truncate">
-                    User Name
+                    {{ userDisplayName }}
                   </p>
                   <p class="text-xs text-primary-100 truncate">
-                    user@example.com
+                    {{ authUser?.email }}
                   </p>
                 </div>
               </div>

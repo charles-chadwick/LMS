@@ -3,6 +3,15 @@
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+Route::get('/', function () {
+    return redirect()->route('courses.index');
+});
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 // Course Routes
 Route::prefix('courses')->name('courses.')->group(function () {
@@ -57,3 +66,5 @@ Route::prefix('pages')->name('pages.')->group(function () {
     // Soft delete page
     Route::delete('/{page}', [PageController::class, 'destroy'])->name('destroy');
 });
+
+require __DIR__.'/auth.php';
