@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CourseStatus;
-use App\Models\Course;
 use App\Http\Requests\StoreCourseRequest;
 use App\Http\Requests\UpdateCourseRequest;
+use App\Models\Course;
 use App\Traits\HasSearchFilter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,40 +18,37 @@ class CourseController extends Controller
 
     /**
      * Display a listing of the courses.
-     *
-     * @param  Request  $request
-     * @return Response
      */
-    public function index(Request $request) : Response
+    public function index(Request $request): Response
     {
         $query = Course::query()
             ->with([
                 'instructors',
-                'students'
+                'students',
             ])
             ->withCount([
                 'pages',
                 'students',
-                'instructors'
+                'instructors',
             ]);
 
         // Apply common filters
         $query = $this->applyCommonFilters($query, $request, [
             'title',
-            'code'
+            'code',
         ]);
 
         // Paginate results
-        $courses = $query->paginate($request->get('perPage', 15))
+        $courses = $query->paginate($request->input('perPage', 15))
             ->withQueryString();
 
         return Inertia::render('Courses/Index', [
-            'courses'        => $courses,
-            'filters'        => $request->only([
+            'courses' => $courses,
+            'filters' => $request->only([
                 'search',
                 'status',
                 'sortBy',
-                'sortDirection'
+                'sortDirection',
             ]),
             'status_options' => CourseStatus::options(),
         ]);
@@ -59,10 +56,8 @@ class CourseController extends Controller
 
     /**
      * Show the form for creating a new course.
-     *
-     * @return Response
      */
-    public function create() : Response
+    public function create(): Response
     {
         return Inertia::render('Courses/Form', [
             'status_options' => CourseStatus::options(),
@@ -71,11 +66,8 @@ class CourseController extends Controller
 
     /**
      * Store a newly created course in storage.
-     *
-     * @param  StoreCourseRequest  $request
-     * @return RedirectResponse
      */
-    public function store(StoreCourseRequest $request) : RedirectResponse
+    public function store(StoreCourseRequest $request): RedirectResponse
     {
         $course = Course::create($request->validated());
 
@@ -86,11 +78,8 @@ class CourseController extends Controller
 
     /**
      * Display the specified course.
-     *
-     * @param  Course  $course
-     * @return Response
      */
-    public function show(Course $course) : Response
+    public function show(Course $course): Response
     {
         $course->load([
             'pages',
@@ -103,7 +92,7 @@ class CourseController extends Controller
         $course->loadCount([
             'pages',
             'students',
-            'instructors'
+            'instructors',
         ]);
 
         return Inertia::render('Courses/Show', [
@@ -113,26 +102,19 @@ class CourseController extends Controller
 
     /**
      * Show the form for editing the specified course.
-     *
-     * @param  Course  $course
-     * @return Response
      */
-    public function edit(Course $course) : Response
+    public function edit(Course $course): Response
     {
         return Inertia::render('Courses/Form', [
-            'course'         => $course,
+            'course' => $course,
             'status_options' => CourseStatus::options(),
         ]);
     }
 
     /**
      * Update the specified course in storage.
-     *
-     * @param  UpdateCourseRequest  $request
-     * @param  Course  $course
-     * @return RedirectResponse
      */
-    public function update(UpdateCourseRequest $request, Course $course) : RedirectResponse
+    public function update(UpdateCourseRequest $request, Course $course): RedirectResponse
     {
         $course->update($request->validated());
 
@@ -143,11 +125,8 @@ class CourseController extends Controller
 
     /**
      * Remove the specified course from storage.
-     *
-     * @param  Course  $course
-     * @return RedirectResponse
      */
-    public function destroy(Course $course) : RedirectResponse
+    public function destroy(Course $course): RedirectResponse
     {
         $course_title = $course->title;
 
@@ -160,11 +139,8 @@ class CourseController extends Controller
 
     /**
      * Restore the specified course from soft deletion.
-     *
-     * @param  int  $id
-     * @return RedirectResponse
      */
-    public function restore(int $id) : RedirectResponse
+    public function restore(int $id): RedirectResponse
     {
         $course = Course::withTrashed()
             ->findOrFail($id);
@@ -177,11 +153,8 @@ class CourseController extends Controller
 
     /**
      * Permanently delete the specified course.
-     *
-     * @param  int  $id
-     * @return RedirectResponse
      */
-    public function forceDestroy(int $id) : RedirectResponse
+    public function forceDestroy(int $id): RedirectResponse
     {
         $course = Course::withTrashed()
             ->findOrFail($id);

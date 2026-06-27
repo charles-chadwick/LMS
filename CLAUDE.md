@@ -194,3 +194,9 @@ Vue components must have a single root element.
 - IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
 
 </laravel-boost-guidelines>
+
+# Project Conventions
+
+## Naming
+
+- Always use full, descriptive variable names. Avoid abbreviations and single-letter names (e.g. use `$query`, not `$q`).
