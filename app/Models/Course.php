@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Course extends Base
 {
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -16,13 +19,11 @@ class Course extends Base
     protected $fillable = [
         'status',
         'title',
-        'code'
+        'code',
     ];
 
     /**
      * Get the pages for the course.
-     *
-     * @return HasMany
      */
     public function pages(): HasMany
     {
@@ -31,8 +32,6 @@ class Course extends Base
 
     /**
      * Get the users enrolled in the course.
-     *
-     * @return BelongsToMany
      */
     public function users(): BelongsToMany
     {
@@ -43,8 +42,6 @@ class Course extends Base
 
     /**
      * Get the instructors for the course.
-     *
-     * @return BelongsToMany
      */
     public function instructors(): BelongsToMany
     {
@@ -53,8 +50,6 @@ class Course extends Base
 
     /**
      * Get the students enrolled in the course.
-     *
-     * @return BelongsToMany
      */
     public function students(): BelongsToMany
     {
@@ -63,8 +58,6 @@ class Course extends Base
 
     /**
      * Get the user progress records for the course.
-     *
-     * @return HasMany
      */
     public function progress(): HasMany
     {
@@ -73,8 +66,6 @@ class Course extends Base
 
     /**
      * Get all discussions for the course.
-     *
-     * @return MorphMany
      */
     public function discussions(): MorphMany
     {

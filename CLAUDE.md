@@ -17,7 +17,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/boost (BOOST) - v2
 - laravel/mcp (MCP) - v0
 - laravel/pint (PINT) - v1
-- phpunit/phpunit (PHPUNIT) - v12
+- pestphp/pest (PEST) - v4
 - @inertiajs/vue3 (INERTIA_VUE) - v3
 - tailwindcss (TAILWINDCSS) - v4
 - vue (VUE) - v3
@@ -168,12 +168,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
 - Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
 
-=== phpunit/core rules ===
+=== pest/core rules ===
 
-# PHPUnit
+# Pest
 
-- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit {name}` to create a new test.
-- If you see a test using "Pest", convert it to PHPUnit.
+- This application uses Pest for testing. Do not use PHPUnit. All tests must be written as Pest tests using the `it()` / `test()` functions and `expect()` API. Use `php artisan make:test {name}` (which scaffolds a Pest test), or `php artisan make:test --unit {name}` for a unit test.
+- If you see a test written as a PHPUnit class, convert it to Pest.
+- Shared setup (e.g. `TestCase`, `LazilyRefreshDatabase`) is bound in `tests/Pest.php` or applied per-file with `uses()`.
 - Every time a test has been updated, run that singular test.
 - When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
 - Tests should cover all happy paths, failure paths, and edge cases.
@@ -200,3 +201,10 @@ Vue components must have a single root element.
 ## Naming
 
 - Always use full, descriptive variable names. Avoid abbreviations and single-letter names (e.g. use `$query`, not `$q`).
+
+## Controllers & Actions
+
+- Keep controllers thin. Move business logic — creating, updating, deleting, restoring, query building, and relationship loading — out of controllers and into single-purpose Action classes.
+- Actions live in `app/Actions/{Domain}/` (e.g. `app/Actions/Courses/CreateCourse.php`), grouped by domain.
+- Each Action exposes a single public `execute()` method with explicit parameter and return type declarations. Inject dependencies via constructor property promotion.
+- Controllers should only: resolve the Action via method injection, pass validated data (`$request->validated()`) to `execute()`, and return the response (`Inertia::render()` or `redirect()`).

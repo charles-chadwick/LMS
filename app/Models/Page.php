@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -10,6 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Page extends Base implements HasMedia
 {
+    use HasFactory;
     use InteractsWithMedia;
 
     /**
@@ -22,7 +24,7 @@ class Page extends Base implements HasMedia
         'order',
         'status',
         'title',
-        'content'
+        'content',
     ];
 
     /**
@@ -36,8 +38,6 @@ class Page extends Base implements HasMedia
 
     /**
      * Get the course that owns the page.
-     *
-     * @return BelongsTo
      */
     public function course(): BelongsTo
     {
@@ -46,8 +46,6 @@ class Page extends Base implements HasMedia
 
     /**
      * Get the user progress records for the page.
-     *
-     * @return HasMany
      */
     public function progress(): HasMany
     {
@@ -56,8 +54,6 @@ class Page extends Base implements HasMedia
 
     /**
      * Get all discussions for the page.
-     *
-     * @return MorphMany
      */
     public function discussions(): MorphMany
     {

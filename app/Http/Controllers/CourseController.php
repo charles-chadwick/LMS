@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Courses\CreateCourse;
+use App\Actions\Courses\DeleteCourse;
+use App\Actions\Courses\ForceDeleteCourse;
+use App\Actions\Courses\ListCourses;
+use App\Actions\Courses\LoadCourseDetails;
+use App\Actions\Courses\RestoreCourse;
+use App\Actions\Courses\UpdateCourse;
 use App\Enums\CourseStatus;
 use App\Http\Requests\StoreCourseRequest;
 use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Course;
-use App\Traits\HasSearchFilter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,38 +20,13 @@ use Inertia\Response;
 
 class CourseController extends Controller
 {
-    use HasSearchFilter;
-
     /**
      * Display a listing of the courses.
      */
-    public function index(Request $request): Response
+    public function index(Request $request, ListCourses $listCourses): Response
     {
-        $query = Course::query()
-            ->select([
-                'id',
-                'status',
-                'title',
-                'code',
-            ])
-            ->withCount([
-                'pages',
-                'students',
-                'instructors',
-            ]);
-
-        // Apply common filters
-        $query = $this->applyCommonFilters($query, $request, [
-            'title',
-            'code',
-        ]);
-
-        // Paginate results
-        $courses = $query->paginate($request->input('perPage', 15))
-            ->withQueryString();
-
         return Inertia::render('Courses/Index', [
-            'courses' => $courses,
+            'courses' => $listCourses->execute($request),
             'filters' => $request->only([
                 'search',
                 'status',
@@ -69,9 +50,9 @@ class CourseController extends Controller
     /**
      * Store a newly created course in storage.
      */
-    public function store(StoreCourseRequest $request): RedirectResponse
+    public function store(StoreCourseRequest $request, CreateCourse $createCourse): RedirectResponse
     {
-        $course = Course::create($request->validated());
+        $course = $createCourse->execute($request->validated());
 
         return redirect()
             ->route('courses.show', $course)
@@ -81,26 +62,10 @@ class CourseController extends Controller
     /**
      * Display the specified course.
      */
-    public function show(Course $course): Response
+    public function show(Course $course, LoadCourseDetails $loadCourseDetails): Response
     {
-        $course->load([
-            'pages' => function ($query) {
-                $query->select('id', 'course_id', 'order', 'status', 'title');
-            },
-            'instructors:id,first_name,last_name,email',
-            'students:id,first_name,last_name,email',
-            'created_by:id,first_name,last_name',
-            'updated_by:id,first_name,last_name',
-        ]);
-
-        $course->loadCount([
-            'pages',
-            'students',
-            'instructors',
-        ]);
-
         return Inertia::render('Courses/Show', [
-            'course' => $course,
+            'course' => $loadCourseDetails->execute($course),
         ]);
     }
 
@@ -118,9 +83,9 @@ class CourseController extends Controller
     /**
      * Update the specified course in storage.
      */
-    public function update(UpdateCourseRequest $request, Course $course): RedirectResponse
+    public function update(UpdateCourseRequest $request, Course $course, UpdateCourse $updateCourse): RedirectResponse
     {
-        $course->update($request->validated());
+        $updateCourse->execute($course, $request->validated());
 
         return redirect()
             ->route('courses.show', $course)
@@ -130,11 +95,9 @@ class CourseController extends Controller
     /**
      * Remove the specified course from storage.
      */
-    public function destroy(Course $course): RedirectResponse
+    public function destroy(Course $course, DeleteCourse $deleteCourse): RedirectResponse
     {
-        $course_title = $course->title;
-
-        $course->delete();
+        $course_title = $deleteCourse->execute($course);
 
         return redirect()
             ->route('courses.index')
@@ -144,11 +107,9 @@ class CourseController extends Controller
     /**
      * Restore the specified course from soft deletion.
      */
-    public function restore(int $id): RedirectResponse
+    public function restore(int $id, RestoreCourse $restoreCourse): RedirectResponse
     {
-        $course = Course::withTrashed()
-            ->findOrFail($id);
-        $course->restore();
+        $course = $restoreCourse->execute($id);
 
         return redirect()
             ->route('courses.show', $course)
@@ -158,13 +119,9 @@ class CourseController extends Controller
     /**
      * Permanently delete the specified course.
      */
-    public function forceDestroy(int $id): RedirectResponse
+    public function forceDestroy(int $id, ForceDeleteCourse $forceDeleteCourse): RedirectResponse
     {
-        $course = Course::withTrashed()
-            ->findOrFail($id);
-        $course_title = $course->title;
-
-        $course->forceDelete();
+        $course_title = $forceDeleteCourse->execute($id);
 
         return redirect()
             ->route('courses.index')
