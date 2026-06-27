@@ -11,8 +11,6 @@ class UpdateCourseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -36,6 +34,10 @@ class UpdateCourseRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('courses', 'code')->ignore($courseId),
+            ],
+            'description' => [
+                'nullable',
+                'string',
             ],
         ];
     }

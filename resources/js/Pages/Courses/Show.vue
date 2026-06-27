@@ -46,6 +46,55 @@ const confirmDelete = () => {
 const goToIndex = () => {
     router.visit(route('courses.index'));
 };
+
+const addPage = () => {
+    router.visit(route('pages.create', { course_id: props.course.id }));
+};
+
+const viewPage = (page) => {
+    router.visit(route('pages.show', page.id));
+};
+
+const editPage = (page) => {
+    router.visit(route('pages.edit', page.id));
+};
+
+const confirmDeletePage = (page) => {
+    confirm.require({
+        message: `Are you sure you want to delete "${page.title}"?`,
+        header: 'Confirm Deletion',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Cancel',
+        acceptLabel: 'Delete',
+        rejectClass: 'p-button-secondary p-button-outlined',
+        acceptClass: 'p-button-danger',
+        accept: () => {
+            router.delete(route('pages.destroy', page.id), { preserveScroll: true });
+        },
+    });
+};
+
+const persistPageOrder = (ordered_pages) => {
+    router.put(
+        route('pages.reorder', props.course.id),
+        { pages: ordered_pages.map((page) => page.id) },
+        { preserveScroll: true },
+    );
+};
+
+const movePage = (index, direction) => {
+    const target_index = index + direction;
+
+    if (target_index < 0 || target_index >= props.course.pages.length) {
+        return;
+    }
+
+    const ordered_pages = [...props.course.pages];
+    [ordered_pages[index], ordered_pages[target_index]] =
+        [ordered_pages[target_index], ordered_pages[index]];
+
+    persistPageOrder(ordered_pages);
+};
 </script>
 
 <template>
@@ -154,6 +203,19 @@ const goToIndex = () => {
                 </template>
             </Card>
 
+            <!-- Description -->
+            <Card v-if="course.description" class="mb-6 shadow-md">
+                <template #title>
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-align-left text-primary-600"></i>
+                        <span class="text-lg">Description</span>
+                    </div>
+                </template>
+                <template #content>
+                    <div class="prose max-w-none" v-html="course.description"></div>
+                </template>
+            </Card>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Instructors -->
                 <Card class="shadow-md">
@@ -211,40 +273,95 @@ const goToIndex = () => {
             <!-- Pages -->
             <Card class="mt-6 shadow-md">
                 <template #title>
-                    <div class="flex items-center gap-2">
-                        <i class="pi pi-file text-primary-600"></i>
-                        <span class="text-lg">Course Pages</span>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-file text-primary-600"></i>
+                            <span class="text-lg">Course Pages</span>
+                        </div>
+                        <Button
+                            label="Add Page"
+                            icon="pi pi-plus"
+                            size="small"
+                            @click="addPage"
+                        />
                     </div>
                 </template>
                 <template #content>
                     <div v-if="course.pages && course.pages.length > 0" class="space-y-3">
                         <div
-                            v-for="page in course.pages"
+                            v-for="(page, index) in course.pages"
                             :key="page.id"
                             class="flex items-center justify-between p-4 bg-darker-50 rounded-lg hover:bg-darker-100 transition-colors"
                         >
                             <div class="flex items-center gap-3">
+                                <div class="flex flex-col">
+                                    <button
+                                        type="button"
+                                        class="text-darker-400 hover:text-primary-600 disabled:opacity-30 disabled:hover:text-darker-400"
+                                        :disabled="index === 0"
+                                        aria-label="Move page up"
+                                        @click="movePage(index, -1)"
+                                    >
+                                        <i class="pi pi-chevron-up text-xs"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="text-darker-400 hover:text-primary-600 disabled:opacity-30 disabled:hover:text-darker-400"
+                                        :disabled="index === course.pages.length - 1"
+                                        aria-label="Move page down"
+                                        @click="movePage(index, 1)"
+                                    >
+                                        <i class="pi pi-chevron-down text-xs"></i>
+                                    </button>
+                                </div>
                                 <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-200 text-primary-700 font-semibold text-sm">
                                     {{ page.order }}
                                 </span>
                                 <div>
-                                    <p class="font-semibold text-darker-900">
+                                    <button
+                                        type="button"
+                                        class="font-semibold text-darker-900 hover:text-primary-600 text-left"
+                                        @click="viewPage(page)"
+                                    >
                                         {{ page.title }}
-                                    </p>
+                                    </button>
                                     <p class="text-sm text-darker-600">
                                         Status: {{ page.status }}
                                     </p>
                                 </div>
                             </div>
-                            <Tag
-                                :value="page.status"
-                                :severity="getStatusSeverity(page.status)"
-                            />
+                            <div class="flex items-center gap-3">
+                                <Tag
+                                    :value="page.status"
+                                    :severity="getStatusSeverity(page.status)"
+                                />
+                                <Button
+                                    icon="pi pi-pencil"
+                                    severity="secondary"
+                                    text
+                                    rounded
+                                    aria-label="Edit page"
+                                    @click="editPage(page)"
+                                />
+                                <Button
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    text
+                                    rounded
+                                    aria-label="Delete page"
+                                    @click="confirmDeletePage(page)"
+                                />
+                            </div>
                         </div>
                     </div>
                     <div v-else class="text-center py-8 text-darker-500">
                         <i class="pi pi-file text-4xl mb-3 block"></i>
-                        <p>No pages created yet</p>
+                        <p class="mb-4">No pages created yet</p>
+                        <Button
+                            label="Add the first page"
+                            icon="pi pi-plus"
+                            @click="addPage"
+                        />
                     </div>
                 </template>
             </Card>

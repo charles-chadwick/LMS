@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\PageController;
+use Illuminate\Support\Facades\Route;
 
 // Course Routes
 Route::prefix('courses')->name('courses.')->group(function () {
@@ -31,4 +32,28 @@ Route::prefix('courses')->name('courses.')->group(function () {
 
     // Permanently delete course
     Route::delete('/{id}/force', [CourseController::class, 'forceDestroy'])->name('forceDestroy');
+});
+
+// Reorder the pages within a course
+Route::put('courses/{course}/pages/reorder', [PageController::class, 'reorder'])->name('pages.reorder');
+
+// Page Routes
+Route::prefix('pages')->name('pages.')->group(function () {
+    // Show create form
+    Route::get('/create', [PageController::class, 'create'])->name('create');
+
+    // Store new page
+    Route::post('/', [PageController::class, 'store'])->name('store');
+
+    // Show a single page
+    Route::get('/{page}', [PageController::class, 'show'])->name('show');
+
+    // Show edit form
+    Route::get('/{page}/edit', [PageController::class, 'edit'])->name('edit');
+
+    // Update page
+    Route::put('/{page}', [PageController::class, 'update'])->name('update');
+
+    // Soft delete page
+    Route::delete('/{page}', [PageController::class, 'destroy'])->name('destroy');
 });

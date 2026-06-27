@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('status');
             $table->string('title');
             $table->string('code');
+            $table->longText('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->integer('created_by_id')->default(1);

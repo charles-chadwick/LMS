@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCourseRequest extends FormRequest
+class StorePageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -18,11 +18,16 @@ class StoreCourseRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
+            'course_id' => [
+                'required',
+                'integer',
+                'exists:courses,id',
+            ],
             'status' => [
                 'required',
                 'string',
@@ -32,14 +37,8 @@ class StoreCourseRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-            'code' => [
+            'content' => [
                 'required',
-                'string',
-                'max:255',
-                'unique:courses,code',
-            ],
-            'description' => [
-                'nullable',
                 'string',
             ],
         ];
@@ -53,22 +52,10 @@ class StoreCourseRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'status' => 'course status',
-            'title' => 'course title',
-            'code' => 'course code',
-        ];
-    }
-
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'status.in' => 'The :attribute must be either Draft, Published, or Archived.',
-            'code.unique' => 'A course with this code already exists.',
+            'course_id' => 'course',
+            'status' => 'page status',
+            'title' => 'page title',
+            'content' => 'page content',
         ];
     }
 }

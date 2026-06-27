@@ -56,14 +56,43 @@ it('creates a course', function () {
         'status' => CourseStatus::Draft->value,
         'title' => 'New Course',
         'code' => 'NEW-101',
+        'description' => '<p>An introductory course</p>',
     ]);
 
     $course = Course::firstWhere('code', 'NEW-101');
 
     expect($course)->not->toBeNull()
-        ->and($course->title)->toBe('New Course');
+        ->and($course->title)->toBe('New Course')
+        ->and($course->description)->toBe('<p>An introductory course</p>');
     $response->assertRedirect(route('courses.show', $course));
     $response->assertSessionHas('success');
+});
+
+it('creates a course without a description', function () {
+    $response = $this->post(route('courses.store'), [
+        'status' => CourseStatus::Draft->value,
+        'title' => 'No Description Course',
+        'code' => 'NODESC-101',
+    ]);
+
+    $course = Course::firstWhere('code', 'NODESC-101');
+
+    expect($course)->not->toBeNull()
+        ->and($course->description)->toBeNull();
+    $response->assertRedirect(route('courses.show', $course));
+});
+
+it('updates a course description', function () {
+    $course = Course::factory()->create(['description' => null]);
+
+    $this->put(route('courses.update', $course), [
+        'status' => CourseStatus::Published->value,
+        'title' => $course->title,
+        'code' => $course->code,
+        'description' => '<p>Updated description</p>',
+    ]);
+
+    expect($course->fresh()->description)->toBe('<p>Updated description</p>');
 });
 
 it('validates required fields when creating a course', function () {

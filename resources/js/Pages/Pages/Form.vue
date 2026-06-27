@@ -1,5 +1,5 @@
 <script setup>
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -8,53 +8,52 @@ import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import AppLayout from "@/Layouts/AppLayout.vue";
 
-const props = defineProps ( {
-  course: {
-    type: Object,
-    default: null,
-  },
-  status_options: {
-    type: Array,
-    required: true,
-  },
-} );
+const props = defineProps({
+    page: {
+        type: Object,
+        default: null,
+    },
+    courses: {
+        type: Array,
+        required: true,
+    },
+    status_options: {
+        type: Array,
+        required: true,
+    },
+});
 
-const is_editing = computed ( () => props.course !== null );
-const page = usePage ();
+const is_editing = computed(() => props.page !== null);
 
-const form = useForm ( {
-  status: props.course?.status || 'Draft',
-  title: props.course?.title || '',
-  code: props.course?.code || '',
-  description: props.course?.description || '',
-} );
+const preselected_course_id = Number(
+    new URLSearchParams(window.location.search).get('course_id'),
+) || null;
+
+const form = useForm({
+    course_id: props.page?.course_id || preselected_course_id,
+    status: props.page?.status || 'Draft',
+    title: props.page?.title || '',
+    content: props.page?.content || '',
+});
 
 const submit = () => {
-  if ( is_editing.value ) {
-    form.put ( route ( 'courses.update', props.course.id ), {
-      preserveScroll: true,
-      onSuccess: () => {
-
-        // Success message will be handled by flash messages
-      },
-    } );
-  } else {
-    form.post ( route ( 'courses.store' ), {
-      preserveScroll: true,
-      onSuccess: ( response ) => {
-        // Success message will be handled by flash messages
-        console.log ( response );
-      },
-    } );
-  }
+    if (is_editing.value) {
+        form.put(route('pages.update', props.page.id), {
+            preserveScroll: true,
+        });
+    } else {
+        form.post(route('pages.store'), {
+            preserveScroll: true,
+        });
+    }
 };
 
 const cancel = () => {
-  if ( is_editing.value ) {
-    window.history.back ();
-  } else {
-    window.location.href = route ( 'courses.index' );
-  }
+    if (form.course_id) {
+        window.location.href = route('courses.show', form.course_id);
+    } else {
+        window.location.href = route('courses.index');
+    }
 };
 </script>
 
@@ -64,10 +63,10 @@ const cancel = () => {
 
       <div class="mb-6">
         <h1 class="text-3xl font-bold text-darker-900">
-          {{ is_editing ? 'Edit Course' : 'Create New Course' }}
+          {{ is_editing ? 'Edit Page' : 'Create New Page' }}
         </h1>
         <p class="mt-2 text-sm text-darker-600">
-          {{ is_editing ? 'Update course information' : 'Fill in the details to create a new course' }}
+          {{ is_editing ? 'Update page content' : 'Fill in the details to add a page to a course' }}
         </p>
       </div>
 
@@ -77,7 +76,35 @@ const cancel = () => {
               @submit.prevent="submit"
               class="space-y-6"
           >
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 gap-6">
+              <!-- Course Field -->
+              <div class="flex flex-col">
+                <label
+                    for="course_id"
+                    class="mb-2 font-semibold text-sm text-darker-700"
+                >
+                  Course
+                  <span class="text-red-500">*</span>
+                </label>
+                <Select
+                    id="course_id"
+                    v-model="form.course_id"
+                    :options="courses"
+                    option-label="title"
+                    option-value="id"
+                    placeholder="Select a course"
+                    filter
+                    class="w-full"
+                    :invalid="!!form.errors.course_id"
+                />
+                <small
+                    v-if="form.errors.course_id"
+                    class="text-red-600 mt-1 block"
+                >
+                  {{ form.errors.course_id }}
+                </small>
+              </div>
+
               <!-- Status Field -->
               <div class="flex flex-col">
                 <label
@@ -111,14 +138,14 @@ const cancel = () => {
                     for="title"
                     class="mb-2 font-semibold text-sm text-darker-700"
                 >
-                  Course Title
+                  Page Title
                   <span class="text-red-500">*</span>
                 </label>
                 <InputText
                     id="title"
                     v-model="form.title"
                     type="text"
-                    placeholder="Enter course title"
+                    placeholder="Enter page title"
                     class="w-full"
                     :invalid="!!form.errors.title"
                 />
@@ -130,59 +157,28 @@ const cancel = () => {
                 </small>
               </div>
 
-              <!-- Code Field -->
+              <!-- Content Field -->
               <div class="flex flex-col">
                 <label
-                    for="code"
+                    for="content"
                     class="mb-2 font-semibold text-sm text-darker-700"
                 >
-                  Course Code
+                  Content
                   <span class="text-red-500">*</span>
                 </label>
-                <InputText
-                    id="code"
-                    v-model="form.code"
-                    type="text"
-                    placeholder="Enter course code (e.g., CS101)"
-                    class="w-full"
-                    :invalid="!!form.errors.code"
+                <Editor
+                    id="content"
+                    v-model="form.content"
+                    editor-style="height: 320px"
+                    :class="{ 'p-invalid': !!form.errors.content }"
                 />
                 <small
-                    v-if="form.errors.code"
+                    v-if="form.errors.content"
                     class="text-red-600 mt-1 block"
                 >
-                  {{ form.errors.code }}
-                </small>
-                <small
-                    v-else
-                    class="text-darker-500 mt-1 block"
-                >
-                  A unique identifier for this course
+                  {{ form.errors.content }}
                 </small>
               </div>
-            </div>
-
-            <!-- Description Field -->
-            <div class="flex flex-col">
-              <label
-                  for="description"
-                  class="mb-2 font-semibold text-sm text-darker-700"
-              >
-                Description
-                <span class="text-darker-400 font-normal">(optional)</span>
-              </label>
-              <Editor
-                  id="description"
-                  v-model="form.description"
-                  editor-style="height: 240px"
-                  :class="{ 'p-invalid': !!form.errors.description }"
-              />
-              <small
-                  v-if="form.errors.description"
-                  class="text-red-600 mt-1 block"
-              >
-                {{ form.errors.description }}
-              </small>
             </div>
 
             <!-- Form Actions -->
@@ -198,7 +194,7 @@ const cancel = () => {
               />
               <Button
                   type="submit"
-                  :label="is_editing ? 'Update Course' : 'Create Course'"
+                  :label="is_editing ? 'Update Page' : 'Create Page'"
                   :loading="form.processing"
                   :disabled="form.processing"
                   class="px-6"
