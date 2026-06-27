@@ -56,6 +56,37 @@ it('creates the first page with order one', function () {
     expect(Page::firstWhere('title', 'First')->order)->toBe(1);
 });
 
+it('sanitizes dangerous markup from page content on create', function () {
+    $course = Course::factory()->create();
+
+    $this->post(route('pages.store'), [
+        'course_id' => $course->id,
+        'status' => CourseStatus::Draft->value,
+        'title' => 'XSS',
+        'content' => '<p>Safe</p><script>alert(1)</script><img src=x onerror="alert(2)">',
+    ]);
+
+    $content = Page::firstWhere('title', 'XSS')->content;
+
+    expect($content)->toContain('Safe')
+        ->and($content)->not->toContain('<script')
+        ->and($content)->not->toContain('onerror');
+});
+
+it('sanitizes dangerous markup from page content on update', function () {
+    $page = Page::factory()->create();
+
+    $this->put(route('pages.update', $page), [
+        'course_id' => $page->course_id,
+        'status' => CourseStatus::Draft->value,
+        'title' => $page->title,
+        'content' => '<p>Clean</p><script>alert(1)</script>',
+    ]);
+
+    expect($page->fresh()->content)->toContain('Clean')
+        ->and($page->fresh()->content)->not->toContain('<script');
+});
+
 it('validates required fields when creating a page', function () {
     $response = $this->post(route('pages.store'), []);
 

@@ -95,6 +95,20 @@ it('updates a course description', function () {
     expect($course->fresh()->description)->toBe('<p>Updated description</p>');
 });
 
+it('sanitizes dangerous markup from the course description', function () {
+    $this->post(route('courses.store'), [
+        'status' => CourseStatus::Draft->value,
+        'title' => 'XSS Course',
+        'code' => 'XSS-101',
+        'description' => '<p>Safe</p><script>alert(1)</script>',
+    ]);
+
+    $description = Course::firstWhere('code', 'XSS-101')->description;
+
+    expect($description)->toContain('Safe')
+        ->and($description)->not->toContain('<script');
+});
+
 it('validates required fields when creating a course', function () {
     $response = $this->post(route('courses.store'), []);
 
