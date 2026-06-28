@@ -20,9 +20,13 @@ const props = defineProps({
     },
     can: {
         type: Object,
-        default: () => ({ update: false, manage_instructors: false }),
+        default: () => ({ update: false, manage_instructors: false, manage_students: false }),
     },
     assignable_instructors: {
+        type: Array,
+        default: () => [],
+    },
+    assignable_students: {
         type: Array,
         default: () => [],
     },
@@ -53,6 +57,33 @@ const addInstructor = () => {
 const removeInstructor = (instructor) => {
     router.delete(
         route('courses.instructors.destroy', { course: props.course.id, user: instructor.id }),
+        { preserveScroll: true },
+    );
+};
+
+const canManageStudents = computed(() => props.can.manage_students);
+
+const selected_student_id = ref('');
+
+const addStudent = () => {
+    if (!selected_student_id.value) {
+        return;
+    }
+    router.post(
+        route('courses.students.store', props.course.id),
+        { user_id: selected_student_id.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                selected_student_id.value = '';
+            },
+        },
+    );
+};
+
+const removeStudent = (student) => {
+    router.delete(
+        route('courses.students.destroy', { course: props.course.id, user: student.id }),
         { preserveScroll: true },
     );
 };
@@ -290,20 +321,48 @@ const movePage = (index, direction) => {
               <div
                   v-for="student in course.students"
                   :key="student.id"
-                  class="flex items-center gap-3 p-3 bg-darker-50 rounded-lg"
+                  class="flex items-center justify-between gap-3 p-3 bg-darker-50 rounded-lg"
               >
-                <Avatar :user="student" variant="accent" />
-                <div>
-                  <p class="font-semibold text-darker-900">
-                    {{ student.first_name }} {{ student.last_name }}
-                  </p>
-                  <p class="text-sm text-darker-600">{{ student.email }}</p>
+                <div class="flex items-center gap-3">
+                  <Avatar :user="student" variant="accent" />
+                  <div>
+                    <p class="font-semibold text-darker-900">
+                      {{ student.first_name }} {{ student.last_name }}
+                    </p>
+                    <p class="text-sm text-darker-600">{{ student.email }}</p>
+                  </div>
                 </div>
+                <Button
+                    v-if="canManageStudents"
+                    variant="ghost"
+                    size="icon-sm"
+                    class="text-destructive hover:bg-destructive/10"
+                    :aria-label="`Remove ${student.first_name} ${student.last_name}`"
+                    @click="removeStudent(student)"
+                >
+                  <X class="w-4 h-4" />
+                </Button>
               </div>
             </div>
             <div v-else class="text-center py-8 text-darker-500">
               <Users class="w-10 h-10 mb-3 mx-auto" />
               <p>No students enrolled yet</p>
+            </div>
+
+            <!-- Add student -->
+            <div v-if="canManageStudents && assignable_students.length > 0" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
+              <div class="flex-1">
+                <UserSelect
+                    v-model="selected_student_id"
+                    :users="assignable_students"
+                    variant="accent"
+                    placeholder="Select a student…"
+                />
+              </div>
+              <Button :disabled="!selected_student_id" @click="addStudent">
+                <UserPlus class="w-4 h-4" />
+                Add
+              </Button>
             </div>
           </CardContent>
         </Card>
