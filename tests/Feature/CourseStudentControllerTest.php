@@ -50,3 +50,98 @@ it('removes the last student without error', function () {
 
     expect($course->students()->count())->toBe(0);
 });
+
+it('lets an admin enroll a student', function () {
+    [$course] = courseWithManager();
+    $student = userWithRole('Student');
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+
+    $response->assertRedirect(route('courses.show', $course));
+    $response->assertSessionHas('success');
+    expect($course->students()->whereKey($student->id)->exists())->toBeTrue();
+});
+
+it('lets an assigned instructor enroll a student', function () {
+    [$course, $instructor] = courseWithManager();
+    $student = userWithRole('Student');
+
+    $response = $this->actingAs($instructor)
+        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+
+    $response->assertRedirect(route('courses.show', $course));
+    expect($course->students()->count())->toBe(1);
+});
+
+it('forbids a non-manager from enrolling a student', function () {
+    [$course] = courseWithManager();
+    $student = userWithRole('Student');
+
+    $response = $this->actingAs(userWithRole('Instructor'))
+        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+
+    $response->assertForbidden();
+    expect($course->students()->whereKey($student->id)->exists())->toBeFalse();
+});
+
+it('rejects enrolling a user without the Student role', function () {
+    [$course] = courseWithManager();
+    $non_student = userWithRole('Instructor');
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->post(route('courses.students.store', $course), ['user_id' => $non_student->id]);
+
+    $response->assertSessionHasErrors('user_id');
+    expect($course->students()->whereKey($non_student->id)->exists())->toBeFalse();
+});
+
+it('rejects enrolling an already-enrolled student', function () {
+    [$course] = courseWithManager();
+    $student = userWithRole('Student');
+    $course->students()->attach($student, ['is_instructor' => false]);
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+
+    $response->assertSessionHasErrors('user_id');
+    expect($course->students()->count())->toBe(1);
+});
+
+it('lets an admin remove a student', function () {
+    [$course] = courseWithManager();
+    $student = userWithRole('Student');
+    $course->students()->attach($student, ['is_instructor' => false]);
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->delete(route('courses.students.destroy', ['course' => $course, 'user' => $student]));
+
+    $response->assertRedirect(route('courses.show', $course));
+    expect($course->students()->whereKey($student->id)->exists())->toBeFalse();
+});
+
+it('forbids a non-manager from removing a student', function () {
+    [$course] = courseWithManager();
+    $student = userWithRole('Student');
+    $course->students()->attach($student, ['is_instructor' => false]);
+
+    $response = $this->actingAs(userWithRole('Instructor'))
+        ->delete(route('courses.students.destroy', ['course' => $course, 'user' => $student]));
+
+    $response->assertForbidden();
+    expect($course->students()->whereKey($student->id)->exists())->toBeTrue();
+});
+
+/**
+ * Create a course that already has one assigned instructor.
+ *
+ * @return array{0: Course, 1: User}
+ */
+function courseWithManager(): array
+{
+    $course = Course::factory()->create();
+    $instructor = userWithRole('Instructor');
+    $course->instructors()->attach($instructor, ['is_instructor' => true]);
+
+    return [$course, $instructor];
+}
