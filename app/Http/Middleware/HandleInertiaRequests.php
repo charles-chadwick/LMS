@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -33,6 +34,9 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'can' => [
+                    'create_courses' => $request->user()?->can('create', Course::class) ?? false,
+                ],
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

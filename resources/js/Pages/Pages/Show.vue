@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { router, Head } from '@inertiajs/vue3';
 import { ArrowLeft, Pencil, Trash2, BookOpen } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,13 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    can: {
+        type: Object,
+        default: () => ({ update: false }),
+    },
 });
+
+const canManage = computed(() => props.can.update);
 
 const getStatusVariant = (status) => {
     const variants = {
@@ -68,7 +75,7 @@ const deletePage = () => {
               </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div v-if="canManage" class="flex items-center gap-3">
               <Button variant="secondary" @click="editPage">
                 <Pencil class="w-4 h-4" />
                 Edit

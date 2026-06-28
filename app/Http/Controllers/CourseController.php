@@ -66,10 +66,13 @@ class CourseController extends Controller
     /**
      * Display the specified course.
      */
-    public function show(Course $course, LoadCourseDetails $loadCourseDetails): Response
+    public function show(Request $request, Course $course, LoadCourseDetails $loadCourseDetails): Response
     {
         return Inertia::render('Courses/Show', [
             'course' => $loadCourseDetails->execute($course),
+            'can' => [
+                'update' => $request->user()->can('update', $course),
+            ],
         ]);
     }
 

@@ -1,0 +1,26 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e7] [cursor=pointer]:
+      - generic: Request
+    - generic [ref=e8] [cursor=pointer]:
+      - generic: Timeline
+    - generic [ref=e9] [cursor=pointer]:
+      - generic: Views
+      - generic [ref=e10]: "1"
+    - generic [ref=e11] [cursor=pointer]:
+      - generic: Queries
+      - generic [ref=e12]: "2"
+    - generic [ref=e13] [cursor=pointer]:
+      - generic: Inertia
+      - generic [ref=e14]: "1"
+    - generic [ref=e15] [cursor=pointer]:
+      - generic: Http client
+      - generic [ref=e16]: "1"
+  - generic [ref=e17]:
+    - generic [ref=e25] [cursor=pointer]: GET /login
+    - generic [ref=e26] [cursor=pointer]:
+      - generic: 14.3ms
+    - generic [ref=e28] [cursor=pointer]:
+      - generic: 1MB
+    - generic [ref=e30] [cursor=pointer]:
+      - generic: 13.x

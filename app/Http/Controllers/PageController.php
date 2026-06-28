@@ -14,6 +14,7 @@ use App\Http\Requests\UpdatePageRequest;
 use App\Models\Course;
 use App\Models\Page;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +28,7 @@ class PageController extends Controller
         $this->authorize('create', Page::class);
 
         return Inertia::render('Pages/Form', [
-            'courses' => Course::orderBy('title')->get(['id', 'title', 'code']),
+            'courses' => $this->manageableCourses(),
             'status_options' => CourseStatus::options(),
         ]);
     }
@@ -56,6 +57,9 @@ class PageController extends Controller
     {
         return Inertia::render('Pages/Show', [
             'page' => $loadPageDetails->execute($page),
+            'can' => [
+                'update' => auth()->user()->can('update', $page),
+            ],
         ]);
     }
 
@@ -68,7 +72,7 @@ class PageController extends Controller
 
         return Inertia::render('Pages/Form', [
             'page' => $page,
-            'courses' => Course::orderBy('title')->get(['id', 'title', 'code']),
+            'courses' => $this->manageableCourses(),
             'status_options' => CourseStatus::options(),
         ]);
     }
@@ -114,5 +118,24 @@ class PageController extends Controller
         return redirect()
             ->route('courses.show', $course)
             ->with('success', 'Pages reordered successfully.');
+    }
+
+    /**
+     * The courses the current user may add pages to: all for admins,
+     * only assigned courses for instructors.
+     *
+     * @return Collection<int, Course>
+     */
+    private function manageableCourses(): Collection
+    {
+        $user = auth()->user();
+
+        $query = Course::orderBy('title');
+
+        if (! $user->hasRole('Admin')) {
+            $query->whereHas('instructors', fn ($instructors) => $instructors->whereKey($user->id));
+        }
+
+        return $query->get(['id', 'title', 'code']);
     }
 }

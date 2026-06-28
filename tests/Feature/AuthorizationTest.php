@@ -4,6 +4,7 @@ use App\Enums\CourseStatus;
 use App\Models\Course;
 use App\Models\Page;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -128,4 +129,39 @@ it('forbids an instructor from deleting a page in another course', function () {
         ->assertForbidden();
 
     $this->assertNotSoftDeleted($page);
+});
+
+it('exposes management abilities to students as false on the index', function () {
+    Course::factory()->create();
+    $this->actingAs(userWithRole('Student'));
+
+    $this->get(route('courses.index'))->assertInertia(fn (Assert $page) => $page
+        ->where('auth.can.create_courses', false)
+        ->where('courses.data.0.can_update', false)
+    );
+});
+
+it('exposes management abilities to admins as true on the index', function () {
+    Course::factory()->create();
+    $this->actingAs(userWithRole('Admin'));
+
+    $this->get(route('courses.index'))->assertInertia(fn (Assert $page) => $page
+        ->where('auth.can.create_courses', true)
+        ->where('courses.data.0.can_update', true)
+    );
+});
+
+it('scopes course-show can.update to the instructor ownership', function () {
+    $instructor = userWithRole('Instructor');
+    $own = Course::factory()->create();
+    $own->instructors()->attach($instructor, ['is_instructor' => true]);
+    $other = Course::factory()->create();
+
+    $this->actingAs($instructor)
+        ->get(route('courses.show', $own))
+        ->assertInertia(fn (Assert $page) => $page->where('can.update', true));
+
+    $this->actingAs($instructor)
+        ->get(route('courses.show', $other))
+        ->assertInertia(fn (Assert $page) => $page->where('can.update', false));
 });

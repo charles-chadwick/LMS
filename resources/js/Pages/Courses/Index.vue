@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, computed, watch } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { Plus, Search, Inbox, Eye, Pencil, Trash2 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,6 +32,9 @@ const props = defineProps({
         required: true,
     },
 });
+
+const page = usePage();
+const canCreateCourses = computed(() => page.props.auth?.can?.create_courses ?? false);
 
 const search = ref(props.filters.search || '');
 const status_filter = ref(props.filters.status || 'all');
@@ -95,7 +98,7 @@ const createCourse = () => {
             <h1 class="text-3xl font-bold text-darker-900">Courses</h1>
             <p class="mt-2 text-sm text-darker-600">Manage and organize your courses</p>
           </div>
-          <Button class="px-6" @click="createCourse">
+          <Button v-if="canCreateCourses" class="px-6" @click="createCourse">
             <Plus class="w-4 h-4" />
             Create Course
           </Button>
@@ -149,7 +152,7 @@ const createCourse = () => {
             <p class="text-darker-400 text-sm mb-6">
               {{ search || status_filter !== 'all' ? 'Try adjusting your filters' : 'Get started by creating your first course' }}
             </p>
-            <Button v-if="!search && status_filter === 'all'" @click="createCourse">
+            <Button v-if="!search && status_filter === 'all' && canCreateCourses" @click="createCourse">
               <Plus class="w-4 h-4" />
               Create Your First Course
             </Button>
@@ -208,10 +211,11 @@ const createCourse = () => {
                       <Button variant="outline" size="icon-sm" aria-label="View" title="View" @click="viewCourse(course.id)">
                         <Eye class="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="icon-sm" aria-label="Edit" title="Edit" @click="editCourse(course.id)">
+                      <Button v-if="course.can_update" variant="outline" size="icon-sm" aria-label="Edit" title="Edit" @click="editCourse(course.id)">
                         <Pencil class="w-4 h-4" />
                       </Button>
                       <ConfirmAction
+                          v-if="course.can_update"
                           title="Delete course?"
                           :description="`Are you sure you want to delete &quot;${course.title}&quot;?`"
                           confirm-label="Delete"

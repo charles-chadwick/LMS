@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { router, Head } from '@inertiajs/vue3';
 import {
     ArrowLeft, Pencil, Trash2, Tag as TagIcon, Users, User, FileText,
@@ -16,7 +17,13 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    can: {
+        type: Object,
+        default: () => ({ update: false }),
+    },
 });
+
+const canManage = computed(() => props.can.update);
 
 const getStatusVariant = (status) => {
     const variants = {
@@ -110,7 +117,7 @@ const movePage = (index, direction) => {
               </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div v-if="canManage" class="flex items-center gap-3">
               <Button variant="secondary" @click="editCourse">
                 <Pencil class="w-4 h-4" />
                 Edit
@@ -237,7 +244,7 @@ const movePage = (index, direction) => {
               <FileText class="w-5 h-5 text-primary-600" />
               Course Pages
             </CardTitle>
-            <Button size="sm" @click="addPage">
+            <Button v-if="canManage" size="sm" @click="addPage">
               <Plus class="w-4 h-4" />
               Add Page
             </Button>
@@ -251,7 +258,7 @@ const movePage = (index, direction) => {
                 class="flex items-center justify-between p-4 bg-darker-50 rounded-lg hover:bg-darker-100 transition-colors"
             >
               <div class="flex items-center gap-3">
-                <div class="flex flex-col">
+                <div v-if="canManage" class="flex flex-col">
                   <button
                       type="button"
                       class="text-darker-400 hover:text-primary-600 disabled:opacity-30"
@@ -287,26 +294,28 @@ const movePage = (index, direction) => {
               </div>
               <div class="flex items-center gap-2">
                 <Badge :variant="getStatusVariant(page.status)">{{ page.status }}</Badge>
-                <Button variant="ghost" size="icon-sm" aria-label="Edit page" @click="editPage(page)">
-                  <Pencil class="w-4 h-4" />
-                </Button>
-                <ConfirmAction
-                    title="Delete page?"
-                    :description="`Are you sure you want to delete &quot;${page.title}&quot;?`"
-                    confirm-label="Delete"
-                    @confirm="deletePage(page)"
-                >
-                  <Button variant="ghost" size="icon-sm" class="text-destructive hover:bg-destructive/10" aria-label="Delete page">
-                    <Trash2 class="w-4 h-4" />
+                <template v-if="canManage">
+                  <Button variant="ghost" size="icon-sm" aria-label="Edit page" @click="editPage(page)">
+                    <Pencil class="w-4 h-4" />
                   </Button>
-                </ConfirmAction>
+                  <ConfirmAction
+                      title="Delete page?"
+                      :description="`Are you sure you want to delete &quot;${page.title}&quot;?`"
+                      confirm-label="Delete"
+                      @confirm="deletePage(page)"
+                  >
+                    <Button variant="ghost" size="icon-sm" class="text-destructive hover:bg-destructive/10" aria-label="Delete page">
+                      <Trash2 class="w-4 h-4" />
+                    </Button>
+                  </ConfirmAction>
+                </template>
               </div>
             </div>
           </div>
           <div v-else class="text-center py-8 text-darker-500">
             <FileText class="w-10 h-10 mb-3 mx-auto" />
             <p class="mb-4">No pages created yet</p>
-            <Button @click="addPage">
+            <Button v-if="canManage" @click="addPage">
               <Plus class="w-4 h-4" />
               Add the first page
             </Button>
