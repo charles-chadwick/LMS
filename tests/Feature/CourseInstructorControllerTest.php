@@ -201,9 +201,9 @@ it('forbids a non-manager from removing an instructor', function () {
 });
 
 it('exposes assignable instructors and the manage flag to a manager', function () {
-    [$course] = courseWithInstructor();
+    [$course, $assigned_instructor] = courseWithInstructor();
     $candidate = userWithRole('Instructor');
-    userWithRole('Student'); // not eligible, must be excluded
+    $student = userWithRole('Student'); // not eligible, must be excluded
 
     $response = $this->actingAs(userWithRole('Admin'))
         ->get(route('courses.show', $course));
@@ -211,7 +211,8 @@ it('exposes assignable instructors and the manage flag to a manager', function (
     $response->assertInertia(fn (Assert $page) => $page
         ->where('can.manage_instructors', true)
         ->where('assignable_instructors', fn ($candidates) => collect($candidates)->contains('id', $candidate->id)
-            && collect($candidates)->count() >= 1)
+            && ! collect($candidates)->contains('id', $assigned_instructor->id)
+            && ! collect($candidates)->contains('id', $student->id))
     );
 });
 
