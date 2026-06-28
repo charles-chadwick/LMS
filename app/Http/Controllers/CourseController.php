@@ -56,7 +56,7 @@ class CourseController extends Controller
     {
         $this->authorize('create', Course::class);
 
-        $course = $createCourse->execute($request->validated());
+        $course = $createCourse->execute($request->validated(), $request->user());
 
         return redirect()
             ->route('courses.show', $course)
