@@ -48,6 +48,7 @@ defineProps({
 </template>
 
 <style scoped>
+/*noinspection CssUnusedSymbol*/
 /* Ensure scrollbar styling if needed */
 .overflow-y-auto::-webkit-scrollbar {
     width: 6px;
