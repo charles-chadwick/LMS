@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CourseCertificateController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseInstructorController;
 use App\Http\Controllers\CourseLearnController;
@@ -65,6 +66,9 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
 
     // Remove a student from a course
     Route::delete('/{course}/students/{user}', [CourseStudentController::class, 'destroy'])->name('students.destroy');
+
+    // Completion certificate
+    Route::get('/{course}/certificate', [CourseCertificateController::class, 'show'])->name('certificate');
 });
 
 // Reorder the pages within a course
