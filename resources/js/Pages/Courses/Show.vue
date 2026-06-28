@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
-import UserList from '@/Components/UserList.vue';
+import UserList from '@/components/UserList.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({

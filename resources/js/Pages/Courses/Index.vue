@@ -15,7 +15,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import ConfirmAction from '@/components/ConfirmAction.vue';
-import Pagination from '@/Components/Pagination.vue';
+import Pagination from '@/components/Pagination.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({

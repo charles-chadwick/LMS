@@ -1,10 +1,9 @@
 <script setup>
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 defineProps({
     status: {
@@ -22,47 +21,38 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Forgot Password" />
+  <GuestLayout>
+    <Head title="Forgot Password" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email
-            address and we will email you a password reset link that will allow
-            you to choose a new one.
-        </div>
+    <h1 class="text-xl font-bold text-darker-900 mb-4">Forgot password</h1>
 
-        <div
-            v-if="status"
-            class="mb-4 text-sm font-medium text-green-600"
-        >
-            {{ status }}
-        </div>
+    <div class="mb-4 text-sm text-darker-600">
+      Forgot your password? No problem. Enter your email address and we will
+      email you a password reset link to choose a new one.
+    </div>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+    <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+      {{ status }}
+    </div>
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
+    <form class="space-y-4" @submit.prevent="submit">
+      <div class="flex flex-col">
+        <Label for="email" class="mb-2">Email</Label>
+        <Input
+            id="email"
+            v-model="form.email"
+            type="email"
+            required
+            autofocus
+            autocomplete="username"
+            :class="{ 'border-red-500': form.errors.email }"
+        />
+        <small v-if="form.errors.email" class="text-red-600 mt-1">{{ form.errors.email }}</small>
+      </div>
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Email Password Reset Link
-                </PrimaryButton>
-            </div>
-        </form>
-    </GuestLayout>
+      <div class="flex items-center justify-end">
+        <Button type="submit" :disabled="form.processing">Email Password Reset Link</Button>
+      </div>
+    </form>
+  </GuestLayout>
 </template>
