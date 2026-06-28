@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseInstructorController;
+use App\Http\Controllers\CourseStudentController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -48,6 +49,12 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
 
     // Remove an instructor from a course
     Route::delete('/{course}/instructors/{user}', [CourseInstructorController::class, 'destroy'])->name('instructors.destroy');
+
+    // Enroll a student in a course
+    Route::post('/{course}/students', [CourseStudentController::class, 'store'])->name('students.store');
+
+    // Remove a student from a course
+    Route::delete('/{course}/students/{user}', [CourseStudentController::class, 'destroy'])->name('students.destroy');
 });
 
 // Reorder the pages within a course
