@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Auth\Passwords\CanResetPassword;
@@ -62,6 +63,7 @@ class User extends Base implements AuthenticatableContract, AuthorizableContract
      * @var array<string, string>
      */
     protected $casts = [
+        'role' => UserRole::class,
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'created_at' => 'datetime',
