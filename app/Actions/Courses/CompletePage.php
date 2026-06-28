@@ -27,8 +27,10 @@ class CompletePage
             ->where('course_id', $course->id)
             ->pluck('page_id');
 
+        $target_order = $pages->firstWhere('id', $page->id)->order;
+
         foreach ($pages as $earlier) {
-            if ($earlier->id === $page->id) {
+            if ($earlier->order >= $target_order) {
                 break;
             }
 
@@ -59,8 +61,12 @@ class CompletePage
      * @param  Collection<int, Page>  $pages
      * @param  Collection<int, int>  $completed_page_ids
      */
-    private function stampCompletionIfFinished(Course $course, User $user, $pages, $completed_page_ids): void
-    {
+    private function stampCompletionIfFinished(
+        Course $course,
+        User $user,
+        Collection $pages,
+        Collection $completed_page_ids
+    ): void {
         $all_complete = $pages->isNotEmpty()
             && $pages->every(fn (Page $page) => $completed_page_ids->contains($page->id));
 

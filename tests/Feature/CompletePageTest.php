@@ -72,3 +72,13 @@ it('aborts when the page is not a published page of the course', function () {
 
     app(CompletePage::class)->execute($student, $course, $draft);
 })->throws(NotFoundHttpException::class);
+
+it('does not gate same-order peer pages against each other', function () {
+    [$course, $student] = enrolledCourse();
+    $firstPage = Page::factory()->forCourse($course, 1)->create(['status' => CourseStatus::Published]);
+    $secondPage = Page::factory()->forCourse($course, 1)->create(['status' => CourseStatus::Published]);
+
+    app(CompletePage::class)->execute($student, $course, $secondPage);
+
+    expect(UserProgress::where('user_id', $student->id)->where('page_id', $secondPage->id)->exists())->toBeTrue();
+});
