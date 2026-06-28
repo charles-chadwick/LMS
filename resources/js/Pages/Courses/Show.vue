@@ -1,15 +1,14 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { router, Head } from '@inertiajs/vue3';
 import {
     ArrowLeft, Pencil, Trash2, Tag as TagIcon, Users, User, FileText,
-    Plus, ChevronUp, ChevronDown, Info, AlignLeft,
+    Plus, ChevronUp, ChevronDown, Info, AlignLeft, X, UserPlus,
 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
-import UserList from '@/components/UserList.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
@@ -19,11 +18,42 @@ const props = defineProps({
     },
     can: {
         type: Object,
-        default: () => ({ update: false }),
+        default: () => ({ update: false, manage_instructors: false }),
+    },
+    assignable_instructors: {
+        type: Array,
+        default: () => [],
     },
 });
 
 const canManage = computed(() => props.can.update);
+
+const canManageInstructors = computed(() => props.can.manage_instructors);
+
+const selected_instructor_id = ref('');
+
+const addInstructor = () => {
+    if (!selected_instructor_id.value) {
+        return;
+    }
+    router.post(
+        route('courses.instructors.store', props.course.id),
+        { user_id: selected_instructor_id.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                selected_instructor_id.value = '';
+            },
+        },
+    );
+};
+
+const removeInstructor = (instructor) => {
+    router.delete(
+        route('courses.instructors.destroy', { course: props.course.id, user: instructor.id }),
+        { preserveScroll: true },
+    );
+};
 
 const getStatusVariant = (status) => {
     const variants = {
@@ -194,10 +224,57 @@ const movePage = (index, direction) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <UserList v-if="course.instructors && course.instructors.length > 0" :users="course.instructors" />
+            <div v-if="course.instructors && course.instructors.length > 0" class="space-y-3 max-h-96 overflow-y-auto">
+              <div
+                  v-for="instructor in course.instructors"
+                  :key="instructor.id"
+                  class="flex items-center justify-between gap-3 p-3 bg-darker-50 rounded-lg"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-primary-200 flex items-center justify-center">
+                    <User class="w-5 h-5 text-primary-700" />
+                  </div>
+                  <div>
+                    <p class="font-semibold text-darker-900">
+                      {{ instructor.first_name }} {{ instructor.last_name }}
+                    </p>
+                    <p class="text-sm text-darker-600">{{ instructor.email }}</p>
+                  </div>
+                </div>
+                <Button
+                    v-if="canManageInstructors"
+                    variant="ghost"
+                    size="icon-sm"
+                    class="text-destructive hover:bg-destructive/10 disabled:opacity-30"
+                    :disabled="course.instructors.length === 1"
+                    :aria-label="`Remove ${instructor.first_name} ${instructor.last_name}`"
+                    @click="removeInstructor(instructor)"
+                >
+                  <X class="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
             <div v-else class="text-center py-8 text-darker-500">
               <Users class="w-10 h-10 mb-3 mx-auto" />
               <p>No instructors assigned yet</p>
+            </div>
+
+            <!-- Add instructor -->
+            <div v-if="canManageInstructors && assignable_instructors.length > 0" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
+              <select
+                  v-model="selected_instructor_id"
+                  class="flex-1 rounded-md border border-darker-300 bg-white px-3 py-2 text-sm text-darker-900"
+                  aria-label="Select an instructor to add"
+              >
+                <option value="">Select an instructor…</option>
+                <option v-for="candidate in assignable_instructors" :key="candidate.id" :value="candidate.id">
+                  {{ candidate.first_name }} {{ candidate.last_name }} ({{ candidate.email }})
+                </option>
+              </select>
+              <Button :disabled="!selected_instructor_id" @click="addInstructor">
+                <UserPlus class="w-4 h-4" />
+                Add
+              </Button>
             </div>
           </CardContent>
         </Card>
