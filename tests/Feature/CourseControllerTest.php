@@ -9,6 +9,10 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
 
+beforeEach(function () {
+    $this->actingAs(userWithRole('Admin'));
+});
+
 it('lists courses with relationship counts on the index', function () {
     $course = Course::factory()->create();
     $course->students()->attach(User::factory()->count(2)->create(), ['is_instructor' => false]);
@@ -56,14 +60,57 @@ it('creates a course', function () {
         'status' => CourseStatus::Draft->value,
         'title' => 'New Course',
         'code' => 'NEW-101',
+        'description' => '<p>An introductory course</p>',
     ]);
 
     $course = Course::firstWhere('code', 'NEW-101');
 
     expect($course)->not->toBeNull()
-        ->and($course->title)->toBe('New Course');
+        ->and($course->title)->toBe('New Course')
+        ->and($course->description)->toBe('<p>An introductory course</p>');
     $response->assertRedirect(route('courses.show', $course));
     $response->assertSessionHas('success');
+});
+
+it('creates a course without a description', function () {
+    $response = $this->post(route('courses.store'), [
+        'status' => CourseStatus::Draft->value,
+        'title' => 'No Description Course',
+        'code' => 'NODESC-101',
+    ]);
+
+    $course = Course::firstWhere('code', 'NODESC-101');
+
+    expect($course)->not->toBeNull()
+        ->and($course->description)->toBeNull();
+    $response->assertRedirect(route('courses.show', $course));
+});
+
+it('updates a course description', function () {
+    $course = Course::factory()->create(['description' => null]);
+
+    $this->put(route('courses.update', $course), [
+        'status' => CourseStatus::Published->value,
+        'title' => $course->title,
+        'code' => $course->code,
+        'description' => '<p>Updated description</p>',
+    ]);
+
+    expect($course->fresh()->description)->toBe('<p>Updated description</p>');
+});
+
+it('sanitizes dangerous markup from the course description', function () {
+    $this->post(route('courses.store'), [
+        'status' => CourseStatus::Draft->value,
+        'title' => 'XSS Course',
+        'code' => 'XSS-101',
+        'description' => '<p>Safe</p><script>alert(1)</script>',
+    ]);
+
+    $description = Course::firstWhere('code', 'XSS-101')->description;
+
+    expect($description)->toContain('Safe')
+        ->and($description)->not->toContain('<script');
 });
 
 it('validates required fields when creating a course', function () {

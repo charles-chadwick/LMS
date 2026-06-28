@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Traits\HasSearchFilter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ListCourses
 {
@@ -34,7 +35,21 @@ class ListCourses
             'code',
         ]);
 
+        $user = $request->user();
+        $is_admin = $user->hasRole('Admin');
+        $taught_course_ids = $is_admin
+            ? collect()
+            : DB::table('courses_users')
+                ->where('user_id', $user->id)
+                ->where('is_instructor', true)
+                ->pluck('course_id');
+
         return $query->paginate($request->input('perPage', 15))
-            ->withQueryString();
+            ->withQueryString()
+            ->through(function (Course $course) use ($is_admin, $taught_course_ids) {
+                $course->can_update = $is_admin || $taught_course_ids->contains($course->id);
+
+                return $course;
+            });
     }
 }

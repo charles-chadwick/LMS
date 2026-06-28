@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
     /* Primary Colors (Purple) */
@@ -39,31 +42,88 @@
     --color-darker-800: #292524;
     --color-darker-900: #1c1917;
     --color-darker-950: #0c0a09;
+}
 
-/* PrimeVue Theme Overrides */
+/* shadcn-vue design tokens — purple primary, stone neutrals */
+:root {
+    --radius: 0.5rem;
+    --background: #ffffff;
+    --foreground: #1c1917;
+    --card: #ffffff;
+    --card-foreground: #1c1917;
+    --popover: #ffffff;
+    --popover-foreground: #1c1917;
+    --primary: #9333ea;
+    --primary-foreground: #faf5ff;
+    --secondary: #f5f5f4;
+    --secondary-foreground: #1c1917;
+    --muted: #f5f5f4;
+    --muted-foreground: #78716c;
+    --accent: #f5f5f4;
+    --accent-foreground: #1c1917;
+    --destructive: #dc2626;
+    --destructive-foreground: #fafafa;
+    --border: #e7e5e4;
+    --input: #e7e5e4;
+    --ring: #9333ea;
+}
 
-    --p-primary-50: var(--color-primary-50);
-    --p-primary-100: var(--color-primary-100);
-    --p-primary-200: var(--color-primary-200);
-    --p-primary-300: var(--color-primary-300);
-    --p-primary-400: var(--color-primary-400);
-    --p-primary-500: var(--color-primary-500);
-    --p-primary-600: var(--color-primary-600);
-    --p-primary-700: var(--color-primary-700);
-    --p-primary-800: var(--color-primary-800);
-    --p-primary-900: var(--color-primary-900);
-    --p-primary-950: var(--color-primary-950);
+.dark {
+    --background: #1c1917;
+    --foreground: #fafaf9;
+    --card: #292524;
+    --card-foreground: #fafaf9;
+    --popover: #292524;
+    --popover-foreground: #fafaf9;
+    --primary: #c084fc;
+    --primary-foreground: #2e1065;
+    --secondary: #292524;
+    --secondary-foreground: #fafaf9;
+    --muted: #292524;
+    --muted-foreground: #a8a29e;
+    --accent: #44403c;
+    --accent-foreground: #fafaf9;
+    --destructive: #ef4444;
+    --destructive-foreground: #fafafa;
+    --border: #44403c;
+    --input: #44403c;
+    --ring: #c084fc;
+}
 
-    --p-surface-0: #ffffff;
-    --p-surface-50: var(--color-darker-50);
-    --p-surface-100: var(--color-darker-100);
-    --p-surface-200: var(--color-darker-200);
-    --p-surface-300: var(--color-darker-300);
-    --p-surface-400: var(--color-darker-400);
-    --p-surface-500: var(--color-darker-500);
-    --p-surface-600: var(--color-darker-600);
-    --p-surface-700: var(--color-darker-700);
-    --p-surface-800: var(--color-darker-800);
-    --p-surface-900: var(--color-darker-900);
-    --p-surface-950: var(--color-darker-950);
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+    * {
+        border-color: var(--border);
+    }
+
+    body {
+        background-color: var(--background);
+        color: var(--foreground);
+    }
 }

@@ -20,6 +20,7 @@ class Course extends Base
         'status',
         'title',
         'code',
+        'description',
     ];
 
     /**

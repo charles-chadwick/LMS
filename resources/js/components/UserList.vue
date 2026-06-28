@@ -1,4 +1,6 @@
 <script setup>
+import { User, Users } from 'lucide-vue-next';
+
 defineProps({
     users: {
         type: Array,
@@ -49,7 +51,7 @@ const getVariantClasses = (variant) => {
                 class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                 :class="getVariantClasses(variant).bg"
             >
-                <i class="pi pi-user" :class="getVariantClasses(variant).text"></i>
+                <User class="w-5 h-5" :class="getVariantClasses(variant).text" />
             </div>
             <div class="flex-1 min-w-0">
                 <p class="font-semibold text-darker-900 truncate">
@@ -62,7 +64,7 @@ const getVariantClasses = (variant) => {
         </div>
     </div>
     <div v-else class="text-center py-8 text-darker-500">
-        <i class="pi pi-users text-4xl mb-3 block"></i>
+        <Users class="w-10 h-10 mb-3 mx-auto" />
         <p>{{ emptyMessage }}</p>
     </div>
 </template>

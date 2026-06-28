@@ -1,58 +1,54 @@
 <script setup>
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
-import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
-import AppLayout from "@/Layouts/AppLayout.vue";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import QuillEditor from '@/components/QuillEditor.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
 
-const props = defineProps ( {
-  course: {
-    type: Object,
-    default: null,
-  },
-  status_options: {
-    type: Array,
-    required: true,
-  },
-} );
+const props = defineProps({
+    course: {
+        type: Object,
+        default: null,
+    },
+    status_options: {
+        type: Array,
+        required: true,
+    },
+});
 
-const is_editing = computed ( () => props.course !== null );
-const page = usePage ();
+const is_editing = computed(() => props.course !== null);
 
-const form = useForm ( {
-  status: props.course?.status || 'Draft',
-  title: props.course?.title || '',
-  code: props.course?.code || '',
-} );
+const form = useForm({
+    status: props.course?.status || 'Draft',
+    title: props.course?.title || '',
+    code: props.course?.code || '',
+    description: props.course?.description || '',
+});
 
 const submit = () => {
-  if ( is_editing.value ) {
-    form.put ( route ( 'courses.update', props.course.id ), {
-      preserveScroll: true,
-      onSuccess: () => {
-
-        // Success message will be handled by flash messages
-      },
-    } );
-  } else {
-    form.post ( route ( 'courses.store' ), {
-      preserveScroll: true,
-      onSuccess: ( response ) => {
-        // Success message will be handled by flash messages
-        console.log ( response );
-      },
-    } );
-  }
+    if (is_editing.value) {
+        form.put(route('courses.update', props.course.id), { preserveScroll: true });
+    } else {
+        form.post(route('courses.store'), { preserveScroll: true });
+    }
 };
 
 const cancel = () => {
-  if ( is_editing.value ) {
-    window.history.back ();
-  } else {
-    window.location.href = route ( 'courses.index' );
-  }
+    if (is_editing.value) {
+        window.history.back();
+    } else {
+        window.location.href = route('courses.index');
+    }
 };
 </script>
 
@@ -70,123 +66,101 @@ const cancel = () => {
       </div>
 
       <Card class="shadow-lg">
-        <template #content>
-          <form
-              @submit.prevent="submit"
-              class="space-y-6"
-          >
-            <div class="grid grid-cols-1 gap-6">
+        <CardContent class="pt-6">
+          <form @submit.prevent="submit" class="space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <!-- Status Field -->
               <div class="flex flex-col">
-                <label
-                    for="status"
-                    class="mb-2 font-semibold text-sm text-darker-700"
-                >
-                  Status
-                  <span class="text-red-500">*</span>
-                </label>
-                <Select
-                    id="status"
-                    v-model="form.status"
-                    :options="status_options"
-                    option-label="label"
-                    option-value="value"
-                    placeholder="Select a status"
-                    class="w-full"
-                    :invalid="!!form.errors.status"
-                />
-                <small
-                    v-if="form.errors.status"
-                    class="text-red-600 mt-1 block"
-                >
+                <Label for="status" class="mb-2">
+                  Status <span class="text-red-500">*</span>
+                </Label>
+                <Select id="status" v-model="form.status">
+                  <SelectTrigger class="w-full" :class="{ 'border-red-500': form.errors.status }">
+                    <SelectValue placeholder="Select a status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                        v-for="option in status_options"
+                        :key="option.value"
+                        :value="option.value"
+                    >
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <small v-if="form.errors.status" class="text-red-600 mt-1 block">
                   {{ form.errors.status }}
                 </small>
               </div>
 
               <!-- Title Field -->
               <div class="flex flex-col">
-                <label
-                    for="title"
-                    class="mb-2 font-semibold text-sm text-darker-700"
-                >
-                  Course Title
-                  <span class="text-red-500">*</span>
-                </label>
-                <InputText
+                <Label for="title" class="mb-2">
+                  Course Title <span class="text-red-500">*</span>
+                </Label>
+                <Input
                     id="title"
                     v-model="form.title"
                     type="text"
                     placeholder="Enter course title"
-                    class="w-full"
-                    :invalid="!!form.errors.title"
+                    :class="{ 'border-red-500': form.errors.title }"
                 />
-                <small
-                    v-if="form.errors.title"
-                    class="text-red-600 mt-1 block"
-                >
+                <small v-if="form.errors.title" class="text-red-600 mt-1 block">
                   {{ form.errors.title }}
                 </small>
               </div>
 
               <!-- Code Field -->
               <div class="flex flex-col">
-                <label
-                    for="code"
-                    class="mb-2 font-semibold text-sm text-darker-700"
-                >
-                  Course Code
-                  <span class="text-red-500">*</span>
-                </label>
-                <InputText
+                <Label for="code" class="mb-2">
+                  Course Code <span class="text-red-500">*</span>
+                </Label>
+                <Input
                     id="code"
                     v-model="form.code"
                     type="text"
                     placeholder="Enter course code (e.g., CS101)"
-                    class="w-full"
-                    :invalid="!!form.errors.code"
+                    :class="{ 'border-red-500': form.errors.code }"
                 />
-                <small
-                    v-if="form.errors.code"
-                    class="text-red-600 mt-1 block"
-                >
+                <small v-if="form.errors.code" class="text-red-600 mt-1 block">
                   {{ form.errors.code }}
                 </small>
-                <small
-                    v-else
-                    class="text-darker-500 mt-1 block"
-                >
+                <small v-else class="text-darker-500 mt-1 block">
                   A unique identifier for this course
                 </small>
               </div>
+            </div>
+
+            <!-- Description Field -->
+            <div class="flex flex-col">
+              <Label for="description" class="mb-2">
+                Description <span class="text-darker-400 font-normal">(optional)</span>
+              </Label>
+              <QuillEditor v-model="form.description" placeholder="Describe this course..." />
+              <small v-if="form.errors.description" class="text-red-600 mt-1 block">
+                {{ form.errors.description }}
+              </small>
             </div>
 
             <!-- Form Actions -->
             <div class="flex items-center justify-end gap-3 pt-6 border-t border-darker-200">
               <Button
                   type="button"
-                  label="Cancel"
-                  severity="secondary"
-                  outlined
+                  variant="outline"
+                  :disabled="form.processing"
+                  class="px-6"
                   @click="cancel"
-                  :disabled="form.processing"
-                  class="px-6"
-              />
-              <Button
-                  type="submit"
-                  :label="is_editing ? 'Update Course' : 'Create Course'"
-                  :loading="form.processing"
-                  :disabled="form.processing"
-                  class="px-6"
-              />
+              >
+                Cancel
+              </Button>
+              <Button type="submit" :disabled="form.processing" class="px-6">
+                {{ is_editing ? 'Update Course' : 'Create Course' }}
+              </Button>
             </div>
           </form>
-        </template>
+        </CardContent>
       </Card>
 
     </div>
   </AppLayout>
 </template>
-
-<style scoped>
-/* Additional custom styles if needed */
-</style>

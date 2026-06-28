@@ -2,19 +2,15 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\CourseStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreCourseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
-    public function authorize() : bool
+    public function authorize(): bool
     {
         return true;
     }
@@ -24,23 +20,27 @@ class StoreCourseRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array|string>
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             'status' => [
                 'required',
-                'string'
-            ],
-            'title'  => [
-                'required',
                 'string',
-                'max:255'
             ],
-            'code'   => [
+            'title' => [
                 'required',
                 'string',
                 'max:255',
-                'unique:courses,code'
+            ],
+            'code' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:courses,code',
+            ],
+            'description' => [
+                'nullable',
+                'string',
             ],
         ];
     }
@@ -50,12 +50,12 @@ class StoreCourseRequest extends FormRequest
      *
      * @return array<string, string>
      */
-    public function attributes() : array
+    public function attributes(): array
     {
         return [
             'status' => 'course status',
-            'title'  => 'course title',
-            'code'   => 'course code',
+            'title' => 'course title',
+            'code' => 'course code',
         ];
     }
 
@@ -64,7 +64,7 @@ class StoreCourseRequest extends FormRequest
      *
      * @return array<string, string>
      */
-    public function messages() : array
+    public function messages(): array
     {
         return [
             'status.in' => 'The :attribute must be either Draft, Published, or Archived.',

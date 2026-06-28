@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,15 +30,18 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        return array_merge(parent::share($request), [
+        return [
+            ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'can' => [
+                    'create_courses' => $request->user()?->can('create', Course::class) ?? false,
+                ],
             ],
             'flash' => [
-                'message' => fn () => $request->session()->get('message'),
-                'error' => fn () => $request->session()->get('error'),
-                'success' => fn () => $request->session()->get('success'),
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
             ],
-        ]);
+        ];
     }
 }

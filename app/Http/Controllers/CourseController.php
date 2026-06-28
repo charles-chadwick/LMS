@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Courses\CreateCourse;
 use App\Actions\Courses\DeleteCourse;
 use App\Actions\Courses\ForceDeleteCourse;
+use App\Actions\Courses\ListAssignableInstructors;
 use App\Actions\Courses\ListCourses;
 use App\Actions\Courses\LoadCourseDetails;
 use App\Actions\Courses\RestoreCourse;
@@ -42,6 +43,8 @@ class CourseController extends Controller
      */
     public function create(): Response
     {
+        $this->authorize('create', Course::class);
+
         return Inertia::render('Courses/Form', [
             'status_options' => CourseStatus::options(),
         ]);
@@ -52,7 +55,9 @@ class CourseController extends Controller
      */
     public function store(StoreCourseRequest $request, CreateCourse $createCourse): RedirectResponse
     {
-        $course = $createCourse->execute($request->validated());
+        $this->authorize('create', Course::class);
+
+        $course = $createCourse->execute($request->validated(), $request->user());
 
         return redirect()
             ->route('courses.show', $course)
@@ -62,10 +67,19 @@ class CourseController extends Controller
     /**
      * Display the specified course.
      */
-    public function show(Course $course, LoadCourseDetails $loadCourseDetails): Response
+    public function show(Request $request, Course $course, LoadCourseDetails $loadCourseDetails, ListAssignableInstructors $listAssignableInstructors): Response
     {
+        $can_manage_instructors = $request->user()->can('manageInstructors', $course);
+
         return Inertia::render('Courses/Show', [
             'course' => $loadCourseDetails->execute($course),
+            'can' => [
+                'update' => $request->user()->can('update', $course),
+                'manage_instructors' => $can_manage_instructors,
+            ],
+            'assignable_instructors' => $can_manage_instructors
+                ? $listAssignableInstructors->execute($course)
+                : [],
         ]);
     }
 
@@ -74,6 +88,8 @@ class CourseController extends Controller
      */
     public function edit(Course $course): Response
     {
+        $this->authorize('update', $course);
+
         return Inertia::render('Courses/Form', [
             'course' => $course,
             'status_options' => CourseStatus::options(),
@@ -85,6 +101,8 @@ class CourseController extends Controller
      */
     public function update(UpdateCourseRequest $request, Course $course, UpdateCourse $updateCourse): RedirectResponse
     {
+        $this->authorize('update', $course);
+
         $updateCourse->execute($course, $request->validated());
 
         return redirect()
@@ -97,6 +115,8 @@ class CourseController extends Controller
      */
     public function destroy(Course $course, DeleteCourse $deleteCourse): RedirectResponse
     {
+        $this->authorize('delete', $course);
+
         $course_title = $deleteCourse->execute($course);
 
         return redirect()
@@ -109,6 +129,8 @@ class CourseController extends Controller
      */
     public function restore(int $id, RestoreCourse $restoreCourse): RedirectResponse
     {
+        $this->authorize('restore', Course::class);
+
         $course = $restoreCourse->execute($id);
 
         return redirect()
@@ -121,6 +143,8 @@ class CourseController extends Controller
      */
     public function forceDestroy(int $id, ForceDeleteCourse $forceDeleteCourse): RedirectResponse
     {
+        $this->authorize('forceDelete', Course::class);
+
         $course_title = $forceDeleteCourse->execute($id);
 
         return redirect()

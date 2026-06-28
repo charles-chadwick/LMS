@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 /*
@@ -16,6 +19,10 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->in('Feature', 'Unit');
 
+// Breeze auth tests don't declare their own database trait, so apply one here.
+pest()->use(RefreshDatabase::class)
+    ->in('Feature/Auth');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
@@ -26,6 +33,19 @@ pest()->extend(TestCase::class)
 | to assert different things. Of course, you may extend the Expectation API at any time.
 |
 */
+
+/**
+ * Create a user assigned the given spatie role (creating the role if needed).
+ */
+function userWithRole(string $role): User
+{
+    Role::findOrCreate($role, 'web');
+
+    $user = User::factory()->create();
+    $user->assignRole($role);
+
+    return $user;
+}
 
 expect()->extend('toBeOne', function () {
     return $this->toBe(1);
