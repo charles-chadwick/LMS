@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseInstructorController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,6 +42,12 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
 
     // Permanently delete course
     Route::delete('/{id}/force', [CourseController::class, 'forceDestroy'])->name('forceDestroy');
+
+    // Assign an instructor to a course
+    Route::post('/{course}/instructors', [CourseInstructorController::class, 'store'])->name('instructors.store');
+
+    // Remove an instructor from a course
+    Route::delete('/{course}/instructors/{user}', [CourseInstructorController::class, 'destroy'])->name('instructors.destroy');
 });
 
 // Reorder the pages within a course

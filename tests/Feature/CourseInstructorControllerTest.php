@@ -4,6 +4,7 @@ use App\Actions\Courses\AssignInstructor;
 use App\Actions\Courses\RemoveInstructor;
 use App\Enums\CourseStatus;
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
 
@@ -70,4 +71,130 @@ it('refuses to remove the last instructor', function () {
     expect(fn () => app(RemoveInstructor::class)->execute($course, $only))
         ->toThrow(ValidationException::class);
     expect($course->instructors()->count())->toBe(1);
+});
+
+/**
+ * Create a course that already has a single assigned instructor.
+ *
+ * @return array{0: Course, 1: User}
+ */
+function courseWithInstructor(): array
+{
+    $course = Course::factory()->create();
+    $instructor = userWithRole('Instructor');
+    $course->instructors()->attach($instructor, ['is_instructor' => true]);
+
+    return [$course, $instructor];
+}
+
+it('lets an admin add an instructor', function () {
+    [$course] = courseWithInstructor();
+    $new_instructor = userWithRole('Instructor');
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->post(route('courses.instructors.store', $course), [
+            'user_id' => $new_instructor->id,
+        ]);
+
+    $response->assertRedirect(route('courses.show', $course));
+    $response->assertSessionHas('success');
+    expect($course->instructors()->whereKey($new_instructor->id)->exists())->toBeTrue();
+});
+
+it('lets an assigned instructor add another instructor', function () {
+    [$course, $instructor] = courseWithInstructor();
+    $new_instructor = userWithRole('Instructor');
+
+    $response = $this->actingAs($instructor)
+        ->post(route('courses.instructors.store', $course), [
+            'user_id' => $new_instructor->id,
+        ]);
+
+    $response->assertRedirect(route('courses.show', $course));
+    expect($course->instructors()->count())->toBe(2);
+});
+
+it('forbids a non-manager from adding an instructor', function () {
+    [$course] = courseWithInstructor();
+    $eligible_target = userWithRole('Instructor');
+    $outsider = userWithRole('Instructor');
+
+    $response = $this->actingAs($outsider)
+        ->post(route('courses.instructors.store', $course), [
+            'user_id' => $eligible_target->id,
+        ]);
+
+    $response->assertForbidden();
+    expect($course->instructors()->whereKey($eligible_target->id)->exists())->toBeFalse();
+});
+
+it('forbids a student from adding an instructor', function () {
+    [$course] = courseWithInstructor();
+    $eligible_target = userWithRole('Instructor');
+
+    $response = $this->actingAs(userWithRole('Student'))
+        ->post(route('courses.instructors.store', $course), [
+            'user_id' => $eligible_target->id,
+        ]);
+
+    $response->assertForbidden();
+});
+
+it('rejects adding a user without an instructor or admin role', function () {
+    [$course] = courseWithInstructor();
+    $student = userWithRole('Student');
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->post(route('courses.instructors.store', $course), [
+            'user_id' => $student->id,
+        ]);
+
+    $response->assertSessionHasErrors('user_id');
+    expect($course->instructors()->whereKey($student->id)->exists())->toBeFalse();
+});
+
+it('rejects adding an already-assigned instructor', function () {
+    [$course, $instructor] = courseWithInstructor();
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->post(route('courses.instructors.store', $course), [
+            'user_id' => $instructor->id,
+        ]);
+
+    $response->assertSessionHasErrors('user_id');
+    expect($course->instructors()->count())->toBe(1);
+});
+
+it('lets an admin remove a non-last instructor', function () {
+    [$course, $instructor] = courseWithInstructor();
+    $second = userWithRole('Instructor');
+    $course->instructors()->attach($second, ['is_instructor' => true]);
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->delete(route('courses.instructors.destroy', ['course' => $course, 'user' => $second]));
+
+    $response->assertRedirect(route('courses.show', $course));
+    expect($course->instructors()->whereKey($second->id)->exists())->toBeFalse();
+});
+
+it('blocks removing the last instructor through the endpoint', function () {
+    [$course, $instructor] = courseWithInstructor();
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->delete(route('courses.instructors.destroy', ['course' => $course, 'user' => $instructor]));
+
+    $response->assertSessionHasErrors('user');
+    expect($course->instructors()->count())->toBe(1);
+});
+
+it('forbids a non-manager from removing an instructor', function () {
+    [$course, $instructor] = courseWithInstructor();
+    $second = userWithRole('Instructor');
+    $course->instructors()->attach($second, ['is_instructor' => true]);
+
+    $response = $this->actingAs(userWithRole('Instructor'))
+        ->delete(route('courses.instructors.destroy', ['course' => $course, 'user' => $second]));
+
+    $response->assertForbidden();
+    expect($course->instructors()->count())->toBe(2);
 });
