@@ -87,7 +87,7 @@ watch(
         <!-- Logo/Title -->
         <div class="p-6 border-b border-primary-800">
           <h1 class="text-2xl font-bold text-primary-50">
-            Learning MS
+            Learn
           </h1>
         </div>
 

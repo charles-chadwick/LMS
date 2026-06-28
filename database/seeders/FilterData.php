@@ -46,16 +46,17 @@ class FilterData
         'sperm',
         'taint',
         'erotic',
-        'shmlangela'
+        'shmlangela',
     ];
+
     private Collection $data;
 
     public function __construct()
     {
-        $this->data = collect(file(database_path('src/rickandmorty-scripts.csv')))->map(fn($line) => trim($line));
+        $this->data = collect(file(database_path('src/rickandmorty-scripts.csv')))->map(fn ($line) => trim($line));
     }
 
-    public static function hasBadWords(string $string) : bool
+    public static function hasBadWords(string $string): bool
     {
         foreach (self::BAD_WORDS as $bad_word) {
             if (stripos($string, $bad_word) !== false) {
@@ -66,7 +67,7 @@ class FilterData
         return false;
     }
 
-    public static function censor(string $string) : string
+    public static function censor(string $string): string
     {
         foreach (self::BAD_WORDS as $bad_word) {
             $string = str_replace($bad_word, str_repeat('*', strlen($bad_word)), $string);
@@ -75,7 +76,7 @@ class FilterData
         return $string;
     }
 
-    public function randomData(int $count, $title = true, $limit = 25) : string
+    public function randomData(int $count, $title = true, $limit = 25): string
     {
         $text = Str::of($this->data->random($count)
             ->map(function ($line) {
