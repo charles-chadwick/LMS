@@ -425,7 +425,6 @@ const movePage = (index, direction) => {
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <Badge :variant="getStatusVariant(page.status)">{{ page.status }}</Badge>
                 <template v-if="canManage">
                   <Button variant="ghost" size="icon-sm" aria-label="Edit page" @click="editPage(page)">
                     <Pencil class="w-4 h-4" />
