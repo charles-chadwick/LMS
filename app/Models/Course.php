@@ -37,7 +37,7 @@ class Course extends Base
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'courses_users')
-            ->withPivot('is_instructor')
+            ->withPivot('is_instructor', 'completed_at')
             ->withTimestamps();
     }
 
