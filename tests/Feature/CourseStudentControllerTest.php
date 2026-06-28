@@ -162,6 +162,19 @@ it('hides assignable students from a non-manager', function () {
     );
 });
 
+it('rejects enrolling a user who instructs the course', function () {
+    [$course] = courseWithManager();
+    $dual_role = userWithRole('Student');
+    $dual_role->assignRole('Instructor');
+    $course->instructors()->attach($dual_role, ['is_instructor' => true]);
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->post(route('courses.students.store', $course), ['user_id' => $dual_role->id]);
+
+    $response->assertSessionHasErrors('user_id');
+    expect($course->students()->whereKey($dual_role->id)->exists())->toBeFalse();
+});
+
 /**
  * Create a course that already has one assigned instructor.
  *

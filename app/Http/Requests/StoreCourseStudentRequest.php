@@ -41,6 +41,8 @@ class StoreCourseStudentRequest extends FormRequest
                         $fail('The selected user must be a student.');
                     } elseif ($course->students()->whereKey($value)->exists()) {
                         $fail('This user is already a student of the course.');
+                    } elseif ($course->instructors()->whereKey($value)->exists()) {
+                        $fail('This user is an instructor of the course.');
                     }
                 },
             ],
