@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
 import Avatar from '@/components/Avatar.vue';
+import UserSelect from '@/components/UserSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
@@ -260,16 +261,14 @@ const movePage = (index, direction) => {
 
             <!-- Add instructor -->
             <div v-if="canManageInstructors && assignable_instructors.length > 0" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
-              <select
-                  v-model="selected_instructor_id"
-                  class="flex-1 rounded-md border border-darker-300 bg-white px-3 py-2 text-sm text-darker-900"
-                  aria-label="Select an instructor to add"
-              >
-                <option value="">Select an instructor…</option>
-                <option v-for="candidate in assignable_instructors" :key="candidate.id" :value="candidate.id">
-                  {{ candidate.first_name }} {{ candidate.last_name }} ({{ candidate.email }})
-                </option>
-              </select>
+              <div class="flex-1">
+                <UserSelect
+                    v-model="selected_instructor_id"
+                    :users="assignable_instructors"
+                    variant="primary"
+                    placeholder="Select an instructor…"
+                />
+              </div>
               <Button :disabled="!selected_instructor_id" @click="addInstructor">
                 <UserPlus class="w-4 h-4" />
                 Add

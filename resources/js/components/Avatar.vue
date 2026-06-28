@@ -29,6 +29,10 @@ const props = defineProps({
         default: 'primary',
         validator: (value) => ['primary', 'accent', 'darker'].includes(value),
     },
+    zoomable: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const sizeClasses = {
@@ -65,8 +69,13 @@ const baseClasses = computed(() =>
 </script>
 
 <template>
+    <!-- With avatar, zoom disabled: plain thumbnail (e.g. inside a select option) -->
+    <div v-if="thumb && !zoomable" :class="baseClasses" :aria-label="fullName" role="img">
+        <img :src="thumb" :alt="fullName" class="w-full h-full object-cover" />
+    </div>
+
     <!-- With avatar: clickable thumbnail that opens the full-size image in a modal -->
-    <DialogRoot v-if="thumb">
+    <DialogRoot v-else-if="thumb">
         <DialogTrigger
             :class="cn(baseClasses, 'cursor-zoom-in transition-shadow hover:ring-2 hover:ring-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500')"
             :aria-label="`View ${fullName}'s avatar`"
