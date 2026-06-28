@@ -40,6 +40,14 @@ class CoursePolicy
     }
 
     /**
+     * Managing instructors follows the same rule as updating.
+     */
+    public function manageInstructors(User $user, Course $course): bool
+    {
+        return $this->update($user, $course);
+    }
+
+    /**
      * Deleting follows the same rule as updating.
      */
     public function delete(User $user, Course $course): bool

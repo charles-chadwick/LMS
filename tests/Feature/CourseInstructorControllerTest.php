@@ -21,3 +21,18 @@ it('assigns the creator as an instructor when a course is created', function () 
         ->and($course->instructors()->whereKey($creator->id)->exists())->toBeTrue()
         ->and($course->instructors()->count())->toBe(1);
 });
+
+it('authorizes admins and assigned instructors to manage instructors', function () {
+    $course = Course::factory()->create();
+    $instructor = userWithRole('Instructor');
+    $course->instructors()->attach($instructor, ['is_instructor' => true]);
+
+    $admin = userWithRole('Admin');
+    $other_instructor = userWithRole('Instructor');
+    $student = userWithRole('Student');
+
+    expect($admin->can('manageInstructors', $course))->toBeTrue()
+        ->and($instructor->can('manageInstructors', $course))->toBeTrue()
+        ->and($other_instructor->can('manageInstructors', $course))->toBeFalse()
+        ->and($student->can('manageInstructors', $course))->toBeFalse();
+});
