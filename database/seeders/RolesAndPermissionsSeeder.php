@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -15,7 +17,7 @@ class RolesAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Define all permissions
         $permissions = [
@@ -115,7 +117,7 @@ class RolesAndPermissionsSeeder extends Seeder
             $this->command->info('Roles and Permissions seeded successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->command->error('Error seeding roles and permissions: ' . $e->getMessage());
+            $this->command->error('Error seeding roles and permissions: '.$e->getMessage());
             throw $e;
         }
     }
@@ -125,7 +127,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createAdminRole(): void
     {
-        $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        $admin = Role::firstOrCreate(['name' => UserRole::Admin->value, 'guard_name' => 'web']);
 
         // Admins get all permissions
         $admin->syncPermissions(Permission::all());
@@ -138,7 +140,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createInstructorRole(): void
     {
-        $instructor = Role::firstOrCreate(['name' => 'Instructor', 'guard_name' => 'web']);
+        $instructor = Role::firstOrCreate(['name' => UserRole::Instructor->value, 'guard_name' => 'web']);
 
         $instructorPermissions = [
             // Course permissions
@@ -206,7 +208,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createStudentRole(): void
     {
-        $student = Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'web']);
+        $student = Role::firstOrCreate(['name' => UserRole::Student->value, 'guard_name' => 'web']);
 
         $studentPermissions = [
             // Course permissions

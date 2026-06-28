@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Page;
 use App\Models\User;
 
@@ -29,7 +30,7 @@ class PagePolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Admin', 'Instructor']);
+        return $user->hasAnyRole([UserRole::Admin, UserRole::Instructor]);
     }
 
     /**
@@ -37,7 +38,7 @@ class PagePolicy
      */
     public function update(User $user, Page $page): bool
     {
-        return $user->hasRole('Admin') || $this->teaches($user, $page);
+        return $user->hasRole(UserRole::Admin) || $this->teaches($user, $page);
     }
 
     /**
@@ -53,7 +54,7 @@ class PagePolicy
      */
     private function teaches(User $user, Page $page): bool
     {
-        return $user->hasRole('Instructor')
+        return $user->hasRole(UserRole::Instructor)
             && $page->course->instructors()->whereKey($user->id)->exists();
     }
 }

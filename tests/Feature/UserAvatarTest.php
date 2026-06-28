@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -36,7 +37,7 @@ it('returns a null avatar when the user has no media', function () {
 });
 
 it('includes instructor and student avatars in the course show payload', function () {
-    $this->actingAs(userWithRole('Admin'));
+    $this->actingAs(userWithRole(UserRole::Admin));
 
     $instructor = giveAvatar(User::factory()->create());
     $student = giveAvatar(User::factory()->create());

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\Page;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -9,7 +10,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 uses(LazilyRefreshDatabase::class);
 
 beforeEach(function () {
-    $this->actingAs(userWithRole('Admin'));
+    $this->actingAs(userWithRole(UserRole::Admin));
 });
 
 it('shows the create form with the list of courses', function () {

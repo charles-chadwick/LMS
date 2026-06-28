@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -37,9 +38,9 @@ pest()->use(RefreshDatabase::class)
 /**
  * Create a user assigned the given spatie role (creating the role if needed).
  */
-function userWithRole(string $role): User
+function userWithRole(UserRole $role): User
 {
-    Role::findOrCreate($role, 'web');
+    Role::findOrCreate($role->value, 'web');
 
     $user = User::factory()->create();
     $user->assignRole($role);

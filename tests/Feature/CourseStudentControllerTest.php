@@ -2,6 +2,7 @@
 
 use App\Actions\Courses\AssignStudent;
 use App\Actions\Courses\RemoveStudent;
+use App\Enums\UserRole;
 use App\Models\Course;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -10,12 +11,12 @@ uses(LazilyRefreshDatabase::class);
 
 it('authorizes admins and assigned instructors to manage students', function () {
     $course = Course::factory()->create();
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($instructor, ['is_instructor' => true]);
 
-    $admin = userWithRole('Admin');
-    $other_instructor = userWithRole('Instructor');
-    $student = userWithRole('Student');
+    $admin = userWithRole(UserRole::Admin);
+    $other_instructor = userWithRole(UserRole::Instructor);
+    $student = userWithRole(UserRole::Student);
 
     expect($admin->can('manageStudents', $course))->toBeTrue()
         ->and($instructor->can('manageStudents', $course))->toBeTrue()
@@ -25,7 +26,7 @@ it('authorizes admins and assigned instructors to manage students', function () 
 
 it('attaches a user as a student via the AssignStudent action', function () {
     $course = Course::factory()->create();
-    $user = userWithRole('Student');
+    $user = userWithRole(UserRole::Student);
 
     app(AssignStudent::class)->execute($course, $user);
 
@@ -34,7 +35,7 @@ it('attaches a user as a student via the AssignStudent action', function () {
 
 it('detaches a student via the RemoveStudent action', function () {
     $course = Course::factory()->create();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
     $course->students()->attach($student, ['is_instructor' => false]);
 
     app(RemoveStudent::class)->execute($course, $student);
@@ -44,7 +45,7 @@ it('detaches a student via the RemoveStudent action', function () {
 
 it('removes the last student without error', function () {
     $course = Course::factory()->create();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
     $course->students()->attach($student, ['is_instructor' => false]);
 
     app(RemoveStudent::class)->execute($course, $student);
@@ -54,9 +55,9 @@ it('removes the last student without error', function () {
 
 it('lets an admin enroll a student', function () {
     [$course] = courseWithManager();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
 
     $response->assertRedirect(route('courses.show', $course));
@@ -66,7 +67,7 @@ it('lets an admin enroll a student', function () {
 
 it('lets an assigned instructor enroll a student', function () {
     [$course, $instructor] = courseWithManager();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
 
     $response = $this->actingAs($instructor)
         ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
@@ -77,9 +78,9 @@ it('lets an assigned instructor enroll a student', function () {
 
 it('forbids a non-manager from enrolling a student', function () {
     [$course] = courseWithManager();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
 
-    $response = $this->actingAs(userWithRole('Instructor'))
+    $response = $this->actingAs(userWithRole(UserRole::Instructor))
         ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
 
     $response->assertForbidden();
@@ -88,9 +89,9 @@ it('forbids a non-manager from enrolling a student', function () {
 
 it('rejects enrolling a user without the Student role', function () {
     [$course] = courseWithManager();
-    $non_student = userWithRole('Instructor');
+    $non_student = userWithRole(UserRole::Instructor);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.students.store', $course), ['user_id' => $non_student->id]);
 
     $response->assertSessionHasErrors('user_id');
@@ -99,10 +100,10 @@ it('rejects enrolling a user without the Student role', function () {
 
 it('rejects enrolling an already-enrolled student', function () {
     [$course] = courseWithManager();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
     $course->students()->attach($student, ['is_instructor' => false]);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
 
     $response->assertSessionHasErrors('user_id');
@@ -111,10 +112,10 @@ it('rejects enrolling an already-enrolled student', function () {
 
 it('lets an admin remove a student', function () {
     [$course] = courseWithManager();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
     $course->students()->attach($student, ['is_instructor' => false]);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->delete(route('courses.students.destroy', ['course' => $course, 'user' => $student]));
 
     $response->assertRedirect(route('courses.show', $course));
@@ -123,10 +124,10 @@ it('lets an admin remove a student', function () {
 
 it('forbids a non-manager from removing a student', function () {
     [$course] = courseWithManager();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
     $course->students()->attach($student, ['is_instructor' => false]);
 
-    $response = $this->actingAs(userWithRole('Instructor'))
+    $response = $this->actingAs(userWithRole(UserRole::Instructor))
         ->delete(route('courses.students.destroy', ['course' => $course, 'user' => $student]));
 
     $response->assertForbidden();
@@ -135,11 +136,11 @@ it('forbids a non-manager from removing a student', function () {
 
 it('exposes assignable students and the manage flag to a manager', function () {
     [$course] = courseWithManager();
-    $candidate = userWithRole('Student');
-    $enrolled = userWithRole('Student');
+    $candidate = userWithRole(UserRole::Student);
+    $enrolled = userWithRole(UserRole::Student);
     $course->students()->attach($enrolled, ['is_instructor' => false]);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->get(route('courses.show', $course));
 
     $response->assertInertia(fn (Assert $page) => $page
@@ -151,9 +152,9 @@ it('exposes assignable students and the manage flag to a manager', function () {
 
 it('hides assignable students from a non-manager', function () {
     [$course] = courseWithManager();
-    userWithRole('Student');
+    userWithRole(UserRole::Student);
 
-    $response = $this->actingAs(userWithRole('Student'))
+    $response = $this->actingAs(userWithRole(UserRole::Student))
         ->get(route('courses.show', $course));
 
     $response->assertInertia(fn (Assert $page) => $page
@@ -164,11 +165,11 @@ it('hides assignable students from a non-manager', function () {
 
 it('rejects enrolling a user who instructs the course', function () {
     [$course] = courseWithManager();
-    $dual_role = userWithRole('Student');
-    $dual_role->assignRole('Instructor');
+    $dual_role = userWithRole(UserRole::Student);
+    $dual_role->assignRole(UserRole::Instructor);
     $course->instructors()->attach($dual_role, ['is_instructor' => true]);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.students.store', $course), ['user_id' => $dual_role->id]);
 
     $response->assertSessionHasErrors('user_id');
@@ -183,7 +184,7 @@ it('rejects enrolling a user who instructs the course', function () {
 function courseWithManager(): array
 {
     $course = Course::factory()->create();
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($instructor, ['is_instructor' => true]);
 
     return [$course, $instructor];

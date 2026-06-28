@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\User;
 
@@ -28,7 +29,7 @@ class CoursePolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Admin', 'Instructor']);
+        return $user->hasAnyRole([UserRole::Admin, UserRole::Instructor]);
     }
 
     /**
@@ -36,7 +37,7 @@ class CoursePolicy
      */
     public function update(User $user, Course $course): bool
     {
-        return $user->hasRole('Admin') || $this->teaches($user, $course);
+        return $user->hasRole(UserRole::Admin) || $this->teaches($user, $course);
     }
 
     /**
@@ -68,7 +69,7 @@ class CoursePolicy
      */
     public function restore(User $user): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole(UserRole::Admin);
     }
 
     /**
@@ -76,7 +77,7 @@ class CoursePolicy
      */
     public function forceDelete(User $user): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole(UserRole::Admin);
     }
 
     /**
@@ -84,7 +85,7 @@ class CoursePolicy
      */
     private function teaches(User $user, Course $course): bool
     {
-        return $user->hasRole('Instructor')
+        return $user->hasRole(UserRole::Instructor)
             && $course->instructors()->whereKey($user->id)->exists();
     }
 }

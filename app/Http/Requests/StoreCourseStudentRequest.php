@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,7 +38,7 @@ class StoreCourseStudentRequest extends FormRequest
                         return;
                     }
 
-                    if (! $user->hasRole('Student')) {
+                    if (! $user->hasRole(UserRole::Student)) {
                         $fail('The selected user must be a student.');
                     } elseif ($course->students()->whereKey($value)->exists()) {
                         $fail('This user is already a student of the course.');

@@ -3,6 +3,7 @@
 use App\Actions\Courses\AssignInstructor;
 use App\Actions\Courses\RemoveInstructor;
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -12,7 +13,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 uses(LazilyRefreshDatabase::class);
 
 it('assigns the creator as an instructor when a course is created', function () {
-    $creator = userWithRole('Instructor');
+    $creator = userWithRole(UserRole::Instructor);
 
     $this->actingAs($creator)->post(route('courses.store'), [
         'status' => CourseStatus::Draft->value,
@@ -29,12 +30,12 @@ it('assigns the creator as an instructor when a course is created', function () 
 
 it('authorizes admins and assigned instructors to manage instructors', function () {
     $course = Course::factory()->create();
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($instructor, ['is_instructor' => true]);
 
-    $admin = userWithRole('Admin');
-    $other_instructor = userWithRole('Instructor');
-    $student = userWithRole('Student');
+    $admin = userWithRole(UserRole::Admin);
+    $other_instructor = userWithRole(UserRole::Instructor);
+    $student = userWithRole(UserRole::Student);
 
     expect($admin->can('manageInstructors', $course))->toBeTrue()
         ->and($instructor->can('manageInstructors', $course))->toBeTrue()
@@ -44,7 +45,7 @@ it('authorizes admins and assigned instructors to manage instructors', function 
 
 it('attaches a user as an instructor via the AssignInstructor action', function () {
     $course = Course::factory()->create();
-    $user = userWithRole('Instructor');
+    $user = userWithRole(UserRole::Instructor);
 
     app(AssignInstructor::class)->execute($course, $user);
 
@@ -53,8 +54,8 @@ it('attaches a user as an instructor via the AssignInstructor action', function 
 
 it('detaches a non-last instructor via the RemoveInstructor action', function () {
     $course = Course::factory()->create();
-    $keep = userWithRole('Instructor');
-    $remove = userWithRole('Instructor');
+    $keep = userWithRole(UserRole::Instructor);
+    $remove = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($keep, ['is_instructor' => true]);
     $course->instructors()->attach($remove, ['is_instructor' => true]);
 
@@ -66,7 +67,7 @@ it('detaches a non-last instructor via the RemoveInstructor action', function ()
 
 it('refuses to remove the last instructor', function () {
     $course = Course::factory()->create();
-    $only = userWithRole('Instructor');
+    $only = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($only, ['is_instructor' => true]);
 
     expect(fn () => app(RemoveInstructor::class)->execute($course, $only))
@@ -82,7 +83,7 @@ it('refuses to remove the last instructor', function () {
 function courseWithInstructor(): array
 {
     $course = Course::factory()->create();
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($instructor, ['is_instructor' => true]);
 
     return [$course, $instructor];
@@ -90,9 +91,9 @@ function courseWithInstructor(): array
 
 it('lets an admin add an instructor', function () {
     [$course] = courseWithInstructor();
-    $new_instructor = userWithRole('Instructor');
+    $new_instructor = userWithRole(UserRole::Instructor);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.instructors.store', $course), [
             'user_id' => $new_instructor->id,
         ]);
@@ -104,7 +105,7 @@ it('lets an admin add an instructor', function () {
 
 it('lets an assigned instructor add another instructor', function () {
     [$course, $instructor] = courseWithInstructor();
-    $new_instructor = userWithRole('Instructor');
+    $new_instructor = userWithRole(UserRole::Instructor);
 
     $response = $this->actingAs($instructor)
         ->post(route('courses.instructors.store', $course), [
@@ -117,8 +118,8 @@ it('lets an assigned instructor add another instructor', function () {
 
 it('forbids a non-manager from adding an instructor', function () {
     [$course] = courseWithInstructor();
-    $eligible_target = userWithRole('Instructor');
-    $outsider = userWithRole('Instructor');
+    $eligible_target = userWithRole(UserRole::Instructor);
+    $outsider = userWithRole(UserRole::Instructor);
 
     $response = $this->actingAs($outsider)
         ->post(route('courses.instructors.store', $course), [
@@ -131,9 +132,9 @@ it('forbids a non-manager from adding an instructor', function () {
 
 it('forbids a student from adding an instructor', function () {
     [$course] = courseWithInstructor();
-    $eligible_target = userWithRole('Instructor');
+    $eligible_target = userWithRole(UserRole::Instructor);
 
-    $response = $this->actingAs(userWithRole('Student'))
+    $response = $this->actingAs(userWithRole(UserRole::Student))
         ->post(route('courses.instructors.store', $course), [
             'user_id' => $eligible_target->id,
         ]);
@@ -143,9 +144,9 @@ it('forbids a student from adding an instructor', function () {
 
 it('rejects adding a user without an instructor or admin role', function () {
     [$course] = courseWithInstructor();
-    $student = userWithRole('Student');
+    $student = userWithRole(UserRole::Student);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.instructors.store', $course), [
             'user_id' => $student->id,
         ]);
@@ -157,7 +158,7 @@ it('rejects adding a user without an instructor or admin role', function () {
 it('rejects adding an already-assigned instructor', function () {
     [$course, $instructor] = courseWithInstructor();
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.instructors.store', $course), [
             'user_id' => $instructor->id,
         ]);
@@ -168,10 +169,10 @@ it('rejects adding an already-assigned instructor', function () {
 
 it('lets an admin remove a non-last instructor', function () {
     [$course, $instructor] = courseWithInstructor();
-    $second = userWithRole('Instructor');
+    $second = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($second, ['is_instructor' => true]);
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->delete(route('courses.instructors.destroy', ['course' => $course, 'user' => $second]));
 
     $response->assertRedirect(route('courses.show', $course));
@@ -181,7 +182,7 @@ it('lets an admin remove a non-last instructor', function () {
 it('blocks removing the last instructor through the endpoint', function () {
     [$course, $instructor] = courseWithInstructor();
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->delete(route('courses.instructors.destroy', ['course' => $course, 'user' => $instructor]));
 
     $response->assertSessionHasErrors('user');
@@ -190,10 +191,10 @@ it('blocks removing the last instructor through the endpoint', function () {
 
 it('forbids a non-manager from removing an instructor', function () {
     [$course, $instructor] = courseWithInstructor();
-    $second = userWithRole('Instructor');
+    $second = userWithRole(UserRole::Instructor);
     $course->instructors()->attach($second, ['is_instructor' => true]);
 
-    $response = $this->actingAs(userWithRole('Instructor'))
+    $response = $this->actingAs(userWithRole(UserRole::Instructor))
         ->delete(route('courses.instructors.destroy', ['course' => $course, 'user' => $second]));
 
     $response->assertForbidden();
@@ -202,10 +203,10 @@ it('forbids a non-manager from removing an instructor', function () {
 
 it('exposes assignable instructors and the manage flag to a manager', function () {
     [$course, $assigned_instructor] = courseWithInstructor();
-    $candidate = userWithRole('Instructor');
-    $student = userWithRole('Student'); // not eligible, must be excluded
+    $candidate = userWithRole(UserRole::Instructor);
+    $student = userWithRole(UserRole::Student); // not eligible, must be excluded
 
-    $response = $this->actingAs(userWithRole('Admin'))
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->get(route('courses.show', $course));
 
     $response->assertInertia(fn (Assert $page) => $page
@@ -218,9 +219,9 @@ it('exposes assignable instructors and the manage flag to a manager', function (
 
 it('hides assignable instructors from a non-manager', function () {
     [$course] = courseWithInstructor();
-    userWithRole('Instructor');
+    userWithRole(UserRole::Instructor);
 
-    $response = $this->actingAs(userWithRole('Student'))
+    $response = $this->actingAs(userWithRole(UserRole::Student))
         ->get(route('courses.show', $course));
 
     $response->assertInertia(fn (Assert $page) => $page

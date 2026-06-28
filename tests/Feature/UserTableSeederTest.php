@@ -26,7 +26,7 @@ it('creates the three consistent Super Admins', function () {
 
     $super_admins->each(function (User $super_admin) {
         expect($super_admin->role)->toBe(UserRole::Admin)
-            ->and($super_admin->hasRole('Admin'))->toBeTrue();
+            ->and($super_admin->hasRole(UserRole::Admin))->toBeTrue();
     });
 
     expect($super_admins->map->full_name->all())

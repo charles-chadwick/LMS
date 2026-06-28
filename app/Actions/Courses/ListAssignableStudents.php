@@ -2,6 +2,7 @@
 
 namespace App\Actions\Courses;
 
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -19,7 +20,7 @@ class ListAssignableStudents
         $instructor_ids = $course->instructors()->pluck('users.id');
         $excluded_ids = $student_ids->merge($instructor_ids);
 
-        return User::whereHas('roles', fn ($query) => $query->where('name', 'Student'))
+        return User::whereHas('roles', fn ($query) => $query->where('name', UserRole::Student->value))
             ->whereNotIn('id', $excluded_ids)
             ->with('media')
             ->orderBy('first_name')

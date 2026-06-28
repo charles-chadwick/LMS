@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,7 +38,7 @@ class StoreCourseInstructorRequest extends FormRequest
                         return;
                     }
 
-                    if (! $user->hasAnyRole(['Admin', 'Instructor'])) {
+                    if (! $user->hasAnyRole([UserRole::Admin, UserRole::Instructor])) {
                         $fail('The selected user must be an instructor or admin.');
                     } elseif ($course->instructors()->whereKey($value)->exists()) {
                         $fail('This user is already an instructor of the course.');

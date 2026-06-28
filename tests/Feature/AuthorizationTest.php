@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\Page;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -13,13 +14,13 @@ it('redirects guests to login from courses', function () {
 });
 
 it('lets any authenticated user view courses', function () {
-    $this->actingAs(userWithRole('Student'));
+    $this->actingAs(userWithRole(UserRole::Student));
 
     $this->get(route('courses.index'))->assertOk();
 });
 
 it('forbids students from creating courses', function () {
-    $this->actingAs(userWithRole('Student'));
+    $this->actingAs(userWithRole(UserRole::Student));
 
     $this->post(route('courses.store'), [
         'status' => CourseStatus::Draft->value,
@@ -31,7 +32,7 @@ it('forbids students from creating courses', function () {
 });
 
 it('lets instructors create courses', function () {
-    $this->actingAs(userWithRole('Instructor'));
+    $this->actingAs(userWithRole(UserRole::Instructor));
 
     $this->post(route('courses.store'), [
         'status' => CourseStatus::Draft->value,
@@ -43,7 +44,7 @@ it('lets instructors create courses', function () {
 });
 
 it('lets an instructor update a course they teach', function () {
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course = Course::factory()->create();
     $course->instructors()->attach($instructor, ['is_instructor' => true]);
 
@@ -59,7 +60,7 @@ it('lets an instructor update a course they teach', function () {
 });
 
 it('forbids an instructor from updating a course they do not teach', function () {
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course = Course::factory()->create(['title' => 'Hands Off']);
 
     $this->actingAs($instructor)
@@ -76,7 +77,7 @@ it('forbids an instructor from updating a course they do not teach', function ()
 it('lets an admin update any course', function () {
     $course = Course::factory()->create();
 
-    $this->actingAs(userWithRole('Admin'))
+    $this->actingAs(userWithRole(UserRole::Admin))
         ->put(route('courses.update', $course), [
             'status' => CourseStatus::Published->value,
             'title' => 'Admin Edit',
@@ -88,7 +89,7 @@ it('lets an admin update any course', function () {
 });
 
 it('forbids an instructor from adding a page to a course they do not teach', function () {
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course = Course::factory()->create();
 
     $this->actingAs($instructor)
@@ -104,7 +105,7 @@ it('forbids an instructor from adding a page to a course they do not teach', fun
 });
 
 it('lets an instructor add a page to a course they teach', function () {
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $course = Course::factory()->create();
     $course->instructors()->attach($instructor, ['is_instructor' => true]);
 
@@ -121,7 +122,7 @@ it('lets an instructor add a page to a course they teach', function () {
 });
 
 it('forbids an instructor from deleting a page in another course', function () {
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $page = Page::factory()->create();
 
     $this->actingAs($instructor)
@@ -133,7 +134,7 @@ it('forbids an instructor from deleting a page in another course', function () {
 
 it('exposes management abilities to students as false on the index', function () {
     Course::factory()->create();
-    $this->actingAs(userWithRole('Student'));
+    $this->actingAs(userWithRole(UserRole::Student));
 
     $this->get(route('courses.index'))->assertInertia(fn (Assert $page) => $page
         ->where('auth.can.create_courses', false)
@@ -143,7 +144,7 @@ it('exposes management abilities to students as false on the index', function ()
 
 it('exposes management abilities to admins as true on the index', function () {
     Course::factory()->create();
-    $this->actingAs(userWithRole('Admin'));
+    $this->actingAs(userWithRole(UserRole::Admin));
 
     $this->get(route('courses.index'))->assertInertia(fn (Assert $page) => $page
         ->where('auth.can.create_courses', true)
@@ -152,7 +153,7 @@ it('exposes management abilities to admins as true on the index', function () {
 });
 
 it('scopes course-show can.update to the instructor ownership', function () {
-    $instructor = userWithRole('Instructor');
+    $instructor = userWithRole(UserRole::Instructor);
     $own = Course::factory()->create();
     $own->instructors()->attach($instructor, ['is_instructor' => true]);
     $other = Course::factory()->create();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\Page;
 use App\Models\User;
@@ -10,7 +11,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 uses(LazilyRefreshDatabase::class);
 
 beforeEach(function () {
-    $this->actingAs(userWithRole('Admin'));
+    $this->actingAs(userWithRole(UserRole::Admin));
 });
 
 it('lists courses with relationship counts on the index', function () {

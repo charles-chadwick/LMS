@@ -2,6 +2,7 @@
 
 namespace App\Actions\Courses;
 
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Traits\HasSearchFilter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -36,7 +37,7 @@ class ListCourses
         ]);
 
         $user = $request->user();
-        $is_admin = $user->hasRole('Admin');
+        $is_admin = $user->hasRole(UserRole::Admin);
         $taught_course_ids = $is_admin
             ? collect()
             : DB::table('courses_users')

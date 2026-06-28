@@ -69,7 +69,7 @@ class UserTableSeeder extends Seeder
                 'updated_at' => '2020-01-01 00:00:00',
             ]);
 
-            $super_admin->assignRole('Admin');
+            $super_admin->assignRole(UserRole::Admin);
 
             RickAndMortyCharacters::markUsed($character['id']);
             $this->attachAvatar($super_admin, $character['id']);

@@ -202,6 +202,14 @@ Vue components must have a single root element.
 
 - Always use full, descriptive variable names. Avoid abbreviations and single-letter names (e.g. use `$query`, not `$q`).
 
+## No Magic Strings — Use Enums
+
+- Never use magic strings (or magic numbers) for fixed sets of values. Use a backed enum from `app/Enums/` instead.
+- This applies everywhere: app code, seeders, factories, and tests. Roles use `App\Enums\UserRole`; course status uses `App\Enums\CourseStatus`.
+- Pass enum cases directly to APIs that accept them. Spatie's `hasRole()`, `hasAnyRole()`, and `assignRole()` accept `UserRole` cases — e.g. `$user->hasAnyRole([UserRole::Admin, UserRole::Instructor])`.
+- When a raw value is genuinely required (e.g. querying a DB column like `roles.name`), use `->value`, or `UserRole::values(...)` for a list — never a literal string.
+- If a needed value isn't in an enum yet, add the case (or a new enum) rather than introducing a literal.
+
 ## Controllers & Actions
 
 - Keep controllers thin. Move business logic — creating, updating, deleting, restoring, query building, and relationship loading — out of controllers and into single-purpose Action classes.

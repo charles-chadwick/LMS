@@ -8,6 +8,7 @@ use App\Actions\Pages\LoadPageDetails;
 use App\Actions\Pages\ReorderPages;
 use App\Actions\Pages\UpdatePage;
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
 use App\Http\Requests\ReorderPagesRequest;
 use App\Http\Requests\StorePageRequest;
 use App\Http\Requests\UpdatePageRequest;
@@ -132,7 +133,7 @@ class PageController extends Controller
 
         $query = Course::orderBy('title');
 
-        if (! $user->hasRole('Admin')) {
+        if (! $user->hasRole(UserRole::Admin)) {
             $query->whereHas('instructors', fn ($instructors) => $instructors->whereKey($user->id));
         }
 
