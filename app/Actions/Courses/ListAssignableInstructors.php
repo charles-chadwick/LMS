@@ -19,6 +19,7 @@ class ListAssignableInstructors
 
         return User::whereHas('roles', fn ($query) => $query->whereIn('name', ['Admin', 'Instructor']))
             ->whereNotIn('id', $assigned_ids)
+            ->with('media')
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name', 'email']);
     }

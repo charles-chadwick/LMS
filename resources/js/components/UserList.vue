@@ -1,5 +1,6 @@
 <script setup>
-import { User, Users } from 'lucide-vue-next';
+import { Users } from 'lucide-vue-next';
+import Avatar from '@/components/Avatar.vue';
 
 defineProps({
     users: {
@@ -20,24 +21,6 @@ defineProps({
         default: null,
     },
 });
-
-const getVariantClasses = (variant) => {
-    const variants = {
-        primary: {
-            bg: 'bg-primary-200',
-            text: 'text-primary-700',
-        },
-        accent: {
-            bg: 'bg-accent-200',
-            text: 'text-accent-700',
-        },
-        darker: {
-            bg: 'bg-darker-200',
-            text: 'text-darker-700',
-        },
-    };
-    return variants[variant];
-};
 </script>
 
 <template>
@@ -47,12 +30,7 @@ const getVariantClasses = (variant) => {
             :key="user.id"
             class="flex items-center gap-3 p-3 bg-darker-50 rounded-lg hover:bg-darker-100 transition-colors"
         >
-            <div
-                class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                :class="getVariantClasses(variant).bg"
-            >
-                <User class="w-5 h-5" :class="getVariantClasses(variant).text" />
-            </div>
+            <Avatar :user="user" :variant="variant" />
             <div class="flex-1 min-w-0">
                 <p class="font-semibold text-darker-900 truncate">
                     {{ user.first_name }} {{ user.last_name }}
@@ -70,6 +48,7 @@ const getVariantClasses = (variant) => {
 </template>
 
 <style scoped>
+/*noinspection CssUnusedSymbol*/
 /* Ensure scrollbar styling if needed */
 .overflow-y-auto::-webkit-scrollbar {
     width: 6px;
