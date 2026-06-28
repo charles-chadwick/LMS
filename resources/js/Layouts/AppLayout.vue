@@ -143,7 +143,8 @@ watch(
       <SheetContent side="left" class="bg-primary-700 border-primary-800 p-0 w-72">
         <SheetHeader class="p-6 border-b border-primary-800">
           <SheetTitle class="text-xl font-bold text-primary-50 text-left">
-            Learning MS
+            Learn
+
           </SheetTitle>
         </SheetHeader>
 

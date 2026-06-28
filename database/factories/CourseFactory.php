@@ -21,7 +21,7 @@ class CourseFactory extends Factory
         return [
             'status' => fake()->randomElement(CourseStatus::cases()),
             'title' => fake()->unique()->sentence(3),
-            'code' => fake()->unique()->bothify('???-###'),
+            'code' => strtoupper(fake()->unique()->bothify('???-###')),
             'description' => '<p>'.fake()->paragraph().'</p>',
             'created_by_id' => 1,
         ];
