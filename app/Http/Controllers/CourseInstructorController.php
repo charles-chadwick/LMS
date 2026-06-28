@@ -16,8 +16,6 @@ class CourseInstructorController extends Controller
      */
     public function store(StoreCourseInstructorRequest $request, Course $course, AssignInstructor $assignInstructor): RedirectResponse
     {
-        $this->authorize('manageInstructors', $course);
-
         $user = User::findOrFail($request->validated()['user_id']);
 
         $assignInstructor->execute($course, $user);
