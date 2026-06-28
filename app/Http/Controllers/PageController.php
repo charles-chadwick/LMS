@@ -24,6 +24,8 @@ class PageController extends Controller
      */
     public function create(): Response
     {
+        $this->authorize('create', Page::class);
+
         return Inertia::render('Pages/Form', [
             'courses' => Course::orderBy('title')->get(['id', 'title', 'code']),
             'status_options' => CourseStatus::options(),
@@ -35,7 +37,12 @@ class PageController extends Controller
      */
     public function store(StorePageRequest $request, CreatePage $createPage): RedirectResponse
     {
-        $page = $createPage->execute($request->validated());
+        $validated = $request->validated();
+
+        // Adding a page requires permission to manage its target course.
+        $this->authorize('update', Course::findOrFail($validated['course_id']));
+
+        $page = $createPage->execute($validated);
 
         return redirect()
             ->route('pages.show', $page)
@@ -57,6 +64,8 @@ class PageController extends Controller
      */
     public function edit(Page $page): Response
     {
+        $this->authorize('update', $page);
+
         return Inertia::render('Pages/Form', [
             'page' => $page,
             'courses' => Course::orderBy('title')->get(['id', 'title', 'code']),
@@ -69,6 +78,8 @@ class PageController extends Controller
      */
     public function update(UpdatePageRequest $request, Page $page, UpdatePage $updatePage): RedirectResponse
     {
+        $this->authorize('update', $page);
+
         $updatePage->execute($page, $request->validated());
 
         return redirect()
@@ -81,6 +92,8 @@ class PageController extends Controller
      */
     public function destroy(Page $page, DeletePage $deletePage): RedirectResponse
     {
+        $this->authorize('delete', $page);
+
         $course_id = $page->course_id;
         $page_title = $deletePage->execute($page);
 
@@ -94,6 +107,8 @@ class PageController extends Controller
      */
     public function reorder(ReorderPagesRequest $request, Course $course, ReorderPages $reorderPages): RedirectResponse
     {
+        $this->authorize('update', $course);
+
         $reorderPages->execute($course, $request->validated()['pages']);
 
         return redirect()

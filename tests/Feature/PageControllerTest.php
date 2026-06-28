@@ -8,6 +8,10 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
 
+beforeEach(function () {
+    $this->actingAs(userWithRole('Admin'));
+});
+
 it('shows the create form with the list of courses', function () {
     Course::factory()->count(2)->create();
 

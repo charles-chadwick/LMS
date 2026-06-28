@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 /*
@@ -31,6 +33,19 @@ pest()->use(RefreshDatabase::class)
 | to assert different things. Of course, you may extend the Expectation API at any time.
 |
 */
+
+/**
+ * Create a user assigned the given spatie role (creating the role if needed).
+ */
+function userWithRole(string $role): User
+{
+    Role::findOrCreate($role, 'web');
+
+    $user = User::factory()->create();
+    $user->assignRole($role);
+
+    return $user;
+}
 
 expect()->extend('toBeOne', function () {
     return $this->toBe(1);

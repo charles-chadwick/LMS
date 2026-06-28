@@ -42,6 +42,8 @@ class CourseController extends Controller
      */
     public function create(): Response
     {
+        $this->authorize('create', Course::class);
+
         return Inertia::render('Courses/Form', [
             'status_options' => CourseStatus::options(),
         ]);
@@ -52,6 +54,8 @@ class CourseController extends Controller
      */
     public function store(StoreCourseRequest $request, CreateCourse $createCourse): RedirectResponse
     {
+        $this->authorize('create', Course::class);
+
         $course = $createCourse->execute($request->validated());
 
         return redirect()
@@ -74,6 +78,8 @@ class CourseController extends Controller
      */
     public function edit(Course $course): Response
     {
+        $this->authorize('update', $course);
+
         return Inertia::render('Courses/Form', [
             'course' => $course,
             'status_options' => CourseStatus::options(),
@@ -85,6 +91,8 @@ class CourseController extends Controller
      */
     public function update(UpdateCourseRequest $request, Course $course, UpdateCourse $updateCourse): RedirectResponse
     {
+        $this->authorize('update', $course);
+
         $updateCourse->execute($course, $request->validated());
 
         return redirect()
@@ -97,6 +105,8 @@ class CourseController extends Controller
      */
     public function destroy(Course $course, DeleteCourse $deleteCourse): RedirectResponse
     {
+        $this->authorize('delete', $course);
+
         $course_title = $deleteCourse->execute($course);
 
         return redirect()
@@ -109,6 +119,8 @@ class CourseController extends Controller
      */
     public function restore(int $id, RestoreCourse $restoreCourse): RedirectResponse
     {
+        $this->authorize('restore', Course::class);
+
         $course = $restoreCourse->execute($id);
 
         return redirect()
@@ -121,6 +133,8 @@ class CourseController extends Controller
      */
     public function forceDestroy(int $id, ForceDeleteCourse $forceDeleteCourse): RedirectResponse
     {
+        $this->authorize('forceDelete', Course::class);
+
         $course_title = $forceDeleteCourse->execute($id);
 
         return redirect()

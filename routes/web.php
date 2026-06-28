@@ -14,7 +14,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Course Routes
-Route::prefix('courses')->name('courses.')->group(function () {
+Route::middleware('auth')->prefix('courses')->name('courses.')->group(function () {
     // List all courses
     Route::get('/', [CourseController::class, 'index'])->name('index');
 
@@ -44,10 +44,12 @@ Route::prefix('courses')->name('courses.')->group(function () {
 });
 
 // Reorder the pages within a course
-Route::put('courses/{course}/pages/reorder', [PageController::class, 'reorder'])->name('pages.reorder');
+Route::put('courses/{course}/pages/reorder', [PageController::class, 'reorder'])
+    ->middleware('auth')
+    ->name('pages.reorder');
 
 // Page Routes
-Route::prefix('pages')->name('pages.')->group(function () {
+Route::middleware('auth')->prefix('pages')->name('pages.')->group(function () {
     // Show create form
     Route::get('/create', [PageController::class, 'create'])->name('create');
 

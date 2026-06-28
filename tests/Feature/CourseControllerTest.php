@@ -9,6 +9,10 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
 
+beforeEach(function () {
+    $this->actingAs(userWithRole('Admin'));
+});
+
 it('lists courses with relationship counts on the index', function () {
     $course = Course::factory()->create();
     $course->students()->attach(User::factory()->count(2)->create(), ['is_instructor' => false]);
