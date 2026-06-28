@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -197,4 +198,32 @@ it('forbids a non-manager from removing an instructor', function () {
 
     $response->assertForbidden();
     expect($course->instructors()->count())->toBe(2);
+});
+
+it('exposes assignable instructors and the manage flag to a manager', function () {
+    [$course] = courseWithInstructor();
+    $candidate = userWithRole('Instructor');
+    userWithRole('Student'); // not eligible, must be excluded
+
+    $response = $this->actingAs(userWithRole('Admin'))
+        ->get(route('courses.show', $course));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('can.manage_instructors', true)
+        ->where('assignable_instructors', fn ($candidates) => collect($candidates)->contains('id', $candidate->id)
+            && collect($candidates)->count() >= 1)
+    );
+});
+
+it('hides assignable instructors from a non-manager', function () {
+    [$course] = courseWithInstructor();
+    userWithRole('Instructor');
+
+    $response = $this->actingAs(userWithRole('Student'))
+        ->get(route('courses.show', $course));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('can.manage_instructors', false)
+        ->where('assignable_instructors', [])
+    );
 });
