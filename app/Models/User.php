@@ -9,31 +9,28 @@ use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia as HasMediaContract;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Base implements
-    AuthenticatableContract,
-    AuthorizableContract,
-    CanResetPasswordContract,
-    HasMediaContract
+class User extends Base implements AuthenticatableContract, AuthorizableContract, CanResetPasswordContract, HasMediaContract
 {
     use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail;
-
     use HasFactory;
+    use HasRoles;
+    use InteractsWithMedia;
+    use LogsActivity;
     use Notifiable;
     use SoftDeletes;
-    use HasRoles;
-    use LogsActivity;
-    use InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -46,7 +43,7 @@ class User extends Base implements
         'last_name',
         'email',
         'password',
-        'email_verified_at'
+        'email_verified_at',
     ];
 
     /**
@@ -73,9 +70,30 @@ class User extends Base implements
     ];
 
     /**
-     * Get the activity log options.
+     * Register the user's media collections.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('avatars')
+            ->singleFile();
+    }
+
+    /**
+     * Register the conversions generated for the user's avatar.
      *
-     * @return LogOptions
+     * The original upload is kept full sized while a square thumbnail
+     * conversion is generated synchronously so it is available immediately
+     * after seeding.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->fit(Fit::Crop, 150, 150)
+            ->nonQueued();
+    }
+
+    /**
+     * Get the activity log options.
      */
     public function getActivitylogOptions(): LogOptions
     {
@@ -87,8 +105,6 @@ class User extends Base implements
 
     /**
      * Get the user's full name.
-     *
-     * @return string
      */
     public function getFullNameAttribute(): string
     {
@@ -97,8 +113,6 @@ class User extends Base implements
 
     /**
      * Get the courses the user is enrolled in.
-     *
-     * @return BelongsToMany
      */
     public function courses(): BelongsToMany
     {
@@ -109,8 +123,6 @@ class User extends Base implements
 
     /**
      * Get the user's progress records.
-     *
-     * @return HasMany
      */
     public function progress(): HasMany
     {
@@ -119,8 +131,6 @@ class User extends Base implements
 
     /**
      * Get discussions created by the user.
-     *
-     * @return HasMany
      */
     public function discussions(): HasMany
     {
@@ -129,8 +139,6 @@ class User extends Base implements
 
     /**
      * Get discussion posts created by the user.
-     *
-     * @return HasMany
      */
     public function discussionPosts(): HasMany
     {
