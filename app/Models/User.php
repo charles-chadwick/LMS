@@ -72,6 +72,15 @@ class User extends Base implements AuthenticatableContract, AuthorizableContract
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'avatar',
+    ];
+
+    /**
      * Register the user's media collections.
      */
     public function registerMediaCollections(): void
@@ -111,6 +120,25 @@ class User extends Base implements AuthenticatableContract, AuthorizableContract
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Get the user's avatar URLs, or null when no avatar has been uploaded.
+     *
+     * @return array{thumb: string, full: string}|null
+     */
+    public function getAvatarAttribute(): ?array
+    {
+        $thumb = $this->getFirstMediaUrl('avatars', 'thumb');
+
+        if ($thumb === '') {
+            return null;
+        }
+
+        return [
+            'thumb' => $thumb,
+            'full' => $this->getFirstMediaUrl('avatars'),
+        ];
     }
 
     /**

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'vue-sonner';
+import Avatar from '@/components/Avatar.vue';
 
 const sidebarVisible = ref(false);
 
@@ -110,7 +111,8 @@ watch(
         <!-- User Section -->
         <div class="p-4 border-t border-primary-800">
           <div class="flex items-center gap-3 px-4 py-3">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600 text-primary-50">
+            <Avatar v-if="authUser" :user="authUser" variant="darker" />
+            <div v-else class="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600 text-primary-50">
               <User class="w-5 h-5" />
             </div>
             <div class="flex-1 min-w-0">
@@ -163,7 +165,8 @@ watch(
 
         <div class="p-4 border-t border-primary-800 mt-auto">
           <div class="flex items-center gap-3 px-4 py-3 mb-2">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600 text-primary-50">
+            <Avatar v-if="authUser" :user="authUser" variant="darker" />
+            <div v-else class="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600 text-primary-50">
               <User class="w-5 h-5" />
             </div>
             <div class="flex-1 min-w-0">

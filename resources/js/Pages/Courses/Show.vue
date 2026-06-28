@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
+import Avatar from '@/components/Avatar.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
@@ -231,9 +232,7 @@ const movePage = (index, direction) => {
                   class="flex items-center justify-between gap-3 p-3 bg-darker-50 rounded-lg"
               >
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-primary-200 flex items-center justify-center">
-                    <User class="w-5 h-5 text-primary-700" />
-                  </div>
+                  <Avatar :user="instructor" variant="primary" />
                   <div>
                     <p class="font-semibold text-darker-900">
                       {{ instructor.first_name }} {{ instructor.last_name }}
@@ -294,9 +293,7 @@ const movePage = (index, direction) => {
                   :key="student.id"
                   class="flex items-center gap-3 p-3 bg-darker-50 rounded-lg"
               >
-                <div class="w-10 h-10 rounded-full bg-accent-200 flex items-center justify-center">
-                  <User class="w-5 h-5 text-accent-700" />
-                </div>
+                <Avatar :user="student" variant="accent" />
                 <div>
                   <p class="font-semibold text-darker-900">
                     {{ student.first_name }} {{ student.last_name }}

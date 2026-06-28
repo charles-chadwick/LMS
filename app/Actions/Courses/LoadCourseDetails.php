@@ -15,8 +15,12 @@ class LoadCourseDetails
             'pages' => function ($query) {
                 $query->select('id', 'course_id', 'order', 'status', 'title');
             },
-            'instructors:id,first_name,last_name,email',
-            'students:id,first_name,last_name,email',
+            'instructors' => function ($query) {
+                $query->select('users.id', 'users.first_name', 'users.last_name', 'users.email')->with('media');
+            },
+            'students' => function ($query) {
+                $query->select('users.id', 'users.first_name', 'users.last_name', 'users.email')->with('media');
+            },
             'created_by:id,first_name,last_name',
             'updated_by:id,first_name,last_name',
         ]);
