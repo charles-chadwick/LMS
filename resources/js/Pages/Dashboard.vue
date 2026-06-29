@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import { LogIn, BookOpen, TrendingUp, MessagesSquare } from 'lucide-vue-next';
+import AppLayout from '@/Layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -10,10 +11,11 @@ defineProps({
 </script>
 
 <template>
-  <Head title="Welcome" />
+  <AppLayout>
+    <Head title="Dashboard" />
 
-  <div class="min-h-screen bg-linear-to-br from-primary-50 to-accent-50 flex items-center justify-center p-4">
-    <Card class="w-full max-w-4xl shadow-2xl overflow-hidden">
+    <div class="flex items-center justify-center p-4">
+      <Card class="w-full max-w-4xl shadow-2xl overflow-hidden">
       <div class="bg-linear-to-r from-primary-600 to-primary-800 p-8 text-center">
         <h1 class="text-4xl font-bold text-white mb-2">
           Learning Management System
@@ -56,6 +58,7 @@ defineProps({
           </div>
         </div>
       </CardContent>
-    </Card>
-  </div>
+      </Card>
+    </div>
+  </AppLayout>
 </template>

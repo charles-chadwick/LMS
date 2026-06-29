@@ -17,12 +17,12 @@ class UserTableSeeder extends Seeder
     /**
      * The number of staff and student records seeded alongside the Super Admins.
      */
-    private const STAFF_AND_STUDENT_COUNT = 25;
+    private const int STAFF_AND_STUDENT_COUNT = 250;
 
     /**
      * The number of seeded staff that should be Instructors. The remainder are Students.
      */
-    private const INSTRUCTOR_COUNT = 5;
+    private const int INSTRUCTOR_COUNT = 5;
 
     /**
      * The three consistent Super Admins, keyed to their Rick and Morty character.
