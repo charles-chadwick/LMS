@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Traits\EnumHelpers;
+
 enum UserRole: string
 {
+    use EnumHelpers;
+
     case Admin = 'Admin';
     case Instructor = 'Instructor';
     case Student = 'Student';

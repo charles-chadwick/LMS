@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,6 +37,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'can' => [
                     'create_courses' => $request->user()?->can('create', Course::class) ?? false,
+                    'create_users' => $request->user()?->can('create', User::class) ?? false,
+                    'view_users' => $request->user()?->can('viewAny', User::class) ?? false,
                 ],
             ],
             'flash' => [

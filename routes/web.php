@@ -6,6 +6,7 @@ use App\Http\Controllers\CourseInstructorController;
 use App\Http\Controllers\CourseLearnController;
 use App\Http\Controllers\CourseStudentController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -69,6 +70,36 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
 
     // Completion certificate
     Route::get('/{course}/certificate', [CourseCertificateController::class, 'show'])->name('certificate');
+});
+
+// User Routes
+Route::middleware('auth')->prefix('users')->name('users.')->group(function () {
+    // List all users
+    Route::get('/', [UserController::class, 'index'])->name('index');
+
+    // Show create form
+    Route::get('/create', [UserController::class, 'create'])->name('create');
+
+    // Store new user
+    Route::post('/', [UserController::class, 'store'])->name('store');
+
+    // Show a single user
+    Route::get('/{user}', [UserController::class, 'show'])->name('show');
+
+    // Show edit form
+    Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+
+    // Update user
+    Route::put('/{user}', [UserController::class, 'update'])->name('update');
+
+    // Soft delete user
+    Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+
+    // Restore soft deleted user
+    Route::post('/{id}/restore', [UserController::class, 'restore'])->name('restore');
+
+    // Permanently delete user
+    Route::delete('/{id}/force', [UserController::class, 'forceDestroy'])->name('forceDestroy');
 });
 
 // Reorder the pages within a course
