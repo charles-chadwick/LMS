@@ -85,3 +85,23 @@ it('lets an admin open any course', function () {
         ->get(route('courses.show', $course))
         ->assertOk();
 });
+
+it('forbids a student from opening a course whose enrollment was soft deleted', function () {
+    $student = userWithRole(UserRole::Student);
+    $course = Course::factory()->create();
+    $course->students()->attach($student, ['is_instructor' => false]);
+    DB::table('courses_users')->where('user_id', $student->id)->update(['deleted_at' => now()]);
+
+    $this->actingAs($student)
+        ->get(route('courses.show', $course))
+        ->assertForbidden();
+});
+
+it('forbids an instructor from opening a course they do not teach', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $course = Course::factory()->create();
+
+    $this->actingAs($instructor)
+        ->get(route('courses.show', $course))
+        ->assertForbidden();
+});
