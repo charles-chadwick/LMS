@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CourseStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,6 +17,15 @@ class Course extends Base
      *
      * @var array<int, string>
      */
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'status' => CourseStatus::class,
+    ];
+
     protected $fillable = [
         'status',
         'title',
@@ -37,7 +47,7 @@ class Course extends Base
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'courses_users')
-            ->withPivot('is_instructor')
+            ->withPivot('is_instructor', 'completed_at')
             ->withTimestamps();
     }
 

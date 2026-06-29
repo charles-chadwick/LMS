@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\CourseStatus;
 use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\User;
@@ -78,6 +79,25 @@ class CoursePolicy
     public function forceDelete(User $user): bool
     {
         return $user->hasRole(UserRole::Admin);
+    }
+
+    /**
+     * Determine whether the user may take (work through) the course.
+     */
+    public function take(User $user, Course $course): bool
+    {
+        return $course->status === CourseStatus::Published
+            && $course->students()->whereKey($user->id)->exists();
+    }
+
+    /**
+     * Determine whether the user may view their completion certificate.
+     */
+    public function viewCertificate(User $user, Course $course): bool
+    {
+        $student = $course->students()->whereKey($user->id)->first();
+
+        return $student !== null && $student->pivot->completed_at !== null;
     }
 
     /**

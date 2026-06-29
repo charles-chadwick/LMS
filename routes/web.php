@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\CourseCertificateController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseInstructorController;
+use App\Http\Controllers\CourseLearnController;
 use App\Http\Controllers\CourseStudentController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
@@ -50,11 +52,23 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
     // Remove an instructor from a course
     Route::delete('/{course}/instructors/{user}', [CourseInstructorController::class, 'destroy'])->name('instructors.destroy');
 
+    // Take a course (player)
+    Route::get('/{course}/learn', [CourseLearnController::class, 'show'])->name('learn');
+    Route::get('/{course}/learn/{page}', [CourseLearnController::class, 'showPage'])
+        ->scopeBindings()
+        ->name('learn.page');
+    Route::post('/{course}/learn/{page}/complete', [CourseLearnController::class, 'complete'])
+        ->scopeBindings()
+        ->name('learn.complete');
+
     // Enroll a student in a course
     Route::post('/{course}/students', [CourseStudentController::class, 'store'])->name('students.store');
 
     // Remove a student from a course
     Route::delete('/{course}/students/{user}', [CourseStudentController::class, 'destroy'])->name('students.destroy');
+
+    // Completion certificate
+    Route::get('/{course}/certificate', [CourseCertificateController::class, 'show'])->name('certificate');
 });
 
 // Reorder the pages within a course

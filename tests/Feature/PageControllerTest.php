@@ -152,7 +152,7 @@ it('updates a page', function () {
     $response->assertRedirect(route('pages.show', $page));
     expect($page->fresh())
         ->title->toBe('New Title')
-        ->status->toBe(CourseStatus::Published->value)
+        ->status->toBe(CourseStatus::Published)
         ->content->toBe('<p>Updated</p>');
 });
 

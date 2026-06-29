@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\CourseStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,7 +36,16 @@ class Page extends Base implements HasMedia
      */
     protected $casts = [
         'order' => 'integer',
+        'status' => CourseStatus::class,
     ];
+
+    /**
+     * Scope a query to only published pages.
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', CourseStatus::Published);
+    }
 
     /**
      * Get the course that owns the page.

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { Plus, Search, Inbox, Eye, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus, Search, Inbox, Eye, Pencil, Trash2, GraduationCap } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -208,6 +208,16 @@ const createCourse = () => {
                   </td>
                   <td class="py-4 px-4">
                     <div class="flex items-center justify-end gap-2">
+                      <Button
+                          v-if="course.can_take"
+                          variant="default"
+                          size="icon-sm"
+                          :aria-label="course.progress_percent > 0 ? 'Continue course' : 'Take course'"
+                          :title="course.progress_percent > 0 ? `Continue (${course.progress_percent}%)` : 'Take course'"
+                          @click="router.visit(route('courses.learn', course.id))"
+                      >
+                        <GraduationCap class="w-4 h-4" />
+                      </Button>
                       <Button variant="outline" size="icon-sm" aria-label="View" title="View" @click="viewCourse(course.id)">
                         <Eye class="w-4 h-4" />
                       </Button>
