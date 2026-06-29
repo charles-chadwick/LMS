@@ -38,6 +38,7 @@ class ListCourses
         ]);
 
         $user = $request->user();
+        $query->visibleTo($user);
         $is_admin = $user->hasRole(UserRole::Admin);
         $taught_course_ids = $is_admin
             ? collect()

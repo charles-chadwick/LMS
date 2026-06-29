@@ -133,8 +133,10 @@ it('forbids an instructor from deleting a page in another course', function () {
 });
 
 it('exposes management abilities to students as false on the index', function () {
-    Course::factory()->create();
-    $this->actingAs(userWithRole(UserRole::Student));
+    $course = Course::factory()->create();
+    $student = userWithRole(UserRole::Student);
+    $course->students()->attach($student, ['is_instructor' => false]);
+    $this->actingAs($student);
 
     $this->get(route('courses.index'))->assertInertia(fn (Assert $page) => $page
         ->where('auth.can.create_courses', false)
@@ -156,13 +158,17 @@ it('scopes course-show can.update to the instructor ownership', function () {
     $instructor = userWithRole(UserRole::Instructor);
     $own = Course::factory()->create();
     $own->instructors()->attach($instructor, ['is_instructor' => true]);
-    $other = Course::factory()->create();
 
     $this->actingAs($instructor)
         ->get(route('courses.show', $own))
         ->assertInertia(fn (Assert $page) => $page->where('can.update', true));
+});
+
+it('forbids an instructor from viewing the show page of a course they do not teach', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $other = Course::factory()->create();
 
     $this->actingAs($instructor)
         ->get(route('courses.show', $other))
-        ->assertInertia(fn (Assert $page) => $page->where('can.update', false));
+        ->assertForbidden();
 });

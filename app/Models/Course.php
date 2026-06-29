@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -81,5 +83,26 @@ class Course extends Base
     public function discussions(): MorphMany
     {
         return $this->morphMany(Discussion::class, 'on', 'on_type', 'on');
+    }
+
+    /**
+     * Scope the query to courses visible to the given user.
+     *
+     * Admins see every course. Any other user sees only the courses they are
+     * assigned to — a non-deleted `courses_users` row, whether as student or
+     * instructor.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): void
+    {
+        if ($user->hasRole(UserRole::Admin)) {
+            return;
+        }
+
+        $query->whereExists(function (\Illuminate\Database\Query\Builder $subquery) use ($user): void {
+            $subquery->from('courses_users')
+                ->whereColumn('courses_users.course_id', 'courses.id')
+                ->where('courses_users.user_id', $user->id)
+                ->whereNull('courses_users.deleted_at');
+        });
     }
 }

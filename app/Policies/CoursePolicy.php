@@ -18,11 +18,11 @@ class CoursePolicy
     }
 
     /**
-     * Any authenticated user may view a course.
+     * A user may view a course only if it is visible to them.
      */
     public function view(User $user, Course $course): bool
     {
-        return true;
+        return Course::query()->visibleTo($user)->whereKey($course->id)->exists();
     }
 
     /**
