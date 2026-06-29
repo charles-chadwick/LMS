@@ -41,13 +41,12 @@ const currentIsCompleted = computed(() =>
     <Head :title="`Learn: ${course.title}`" />
 
     <div class="min-h-screen bg-darker-50 py-8 px-4 sm:px-6 lg:px-8">
+      <!-- Back Button -->
       <div class="mb-6">
-        <Link :href="route('courses.index')">
-          <Button variant="outline">
-            <ArrowLeft class="w-4 h-4" />
-            Back to Courses
-          </Button>
-        </Link>
+        <Button variant="outline" @click="router.visit(route('courses.index'))">
+          <ArrowLeft class="w-4 h-4" />
+          Back to Courses
+        </Button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-[20rem_1fr] gap-6">

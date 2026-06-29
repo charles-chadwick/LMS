@@ -19,7 +19,7 @@ class PageSeeder extends Seeder
         $courses = Course::all();
 
         if ($courses->isEmpty()) {
-            $courses = Course::factory()->count(3)->create();
+            $courses = Course::factory()->count(25)->create();
         }
 
         foreach ($courses as $course) {

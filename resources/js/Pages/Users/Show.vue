@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ArrowLeft, Pencil, Trash2, Mail, BadgeCheck, BookOpen } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,15 +39,12 @@ const deleteUser = () => {
 
     <div class="min-h-screen bg-darker-50 py-8 px-4 sm:px-6 lg:px-8">
 
-      <!-- Back link -->
+      <!-- Back Button -->
       <div class="mb-6">
-        <Link
-            :href="route('users.index')"
-            class="inline-flex items-center gap-2 text-sm text-darker-600 hover:text-darker-900"
-        >
+        <Button variant="outline" @click="router.visit(route('users.index'))">
           <ArrowLeft class="w-4 h-4" />
           Back to Users
-        </Link>
+        </Button>
       </div>
 
       <Card class="shadow-lg">

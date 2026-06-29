@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ArrowLeft, Printer, Award } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -33,12 +33,10 @@ const printCertificate = () => {
 
     <div class="min-h-screen bg-darker-50 py-8 px-4 sm:px-6 lg:px-8">
       <div class="mb-6 flex items-center justify-between print:hidden">
-        <Link :href="route('courses.learn', course.id)">
-          <Button variant="outline">
-            <ArrowLeft class="w-4 h-4" />
-            Back to Course
-          </Button>
-        </Link>
+        <Button variant="outline" @click="router.visit(route('courses.learn', course.id))">
+          <ArrowLeft class="w-4 h-4" />
+          Back to Course
+        </Button>
         <Button @click="printCertificate">
           <Printer class="w-4 h-4" />
           Print
