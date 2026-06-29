@@ -73,6 +73,12 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
     // Enroll a student in a course
     Route::post('/{course}/students', [CourseStudentController::class, 'store'])->name('students.store');
 
+    // Search groups whose members can be bulk-enrolled (typeahead)
+    Route::get('/{course}/students/assignable-groups', [CourseStudentController::class, 'assignableGroups'])->name('students.assignable-groups');
+
+    // Bulk-enroll a group's members as students
+    Route::post('/{course}/students/group', [CourseStudentController::class, 'storeGroup'])->name('students.storeGroup');
+
     // Remove a student from a course
     Route::delete('/{course}/students/{user}', [CourseStudentController::class, 'destroy'])->name('students.destroy');
 
