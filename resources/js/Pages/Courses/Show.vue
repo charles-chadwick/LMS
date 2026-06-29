@@ -139,10 +139,15 @@ const onDragEnd = () => {
     persistPageOrder(ordered_pages.value);
 };
 
-const persistPageOrder = (ordered_pages) => {
+const persistPageOrder = (pages_in_order) => {
+    const new_order = pages_in_order.map((page) => page.id);
+    const current_order = (props.course.pages ?? []).map((page) => page.id);
+    if (new_order.join(',') === current_order.join(',')) {
+        return;
+    }
     router.put(
         route('pages.reorder', props.course.id),
-        { pages: ordered_pages.map((page) => page.id) },
+        { pages: new_order },
         { preserveScroll: true },
     );
 };
