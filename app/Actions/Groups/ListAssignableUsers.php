@@ -19,7 +19,7 @@ class ListAssignableUsers
      */
     public function execute(Group $group): Collection
     {
-        $member_ids = $group->users()->pluck('users.id');
+        $member_ids = $group->loadMissing('users')->users->pluck('id');
 
         return User::whereHas('roles', fn ($query) => $query->whereIn('name', UserRole::values(UserRole::Instructor, UserRole::Student)))
             ->whereNotIn('id', $member_ids)

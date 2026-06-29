@@ -16,9 +16,8 @@ class ListAssignableStudents
      */
     public function execute(Course $course): Collection
     {
-        $student_ids = $course->students()->pluck('users.id');
-        $instructor_ids = $course->instructors()->pluck('users.id');
-        $excluded_ids = $student_ids->merge($instructor_ids);
+        $course->loadMissing(['students', 'instructors']);
+        $excluded_ids = $course->students->pluck('id')->merge($course->instructors->pluck('id'));
 
         return User::whereHas('roles', fn ($query) => $query->where('name', UserRole::Student->value))
             ->whereNotIn('id', $excluded_ids)

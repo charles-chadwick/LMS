@@ -16,7 +16,7 @@ class ListAssignableInstructors
      */
     public function execute(Course $course): Collection
     {
-        $assigned_ids = $course->instructors()->pluck('users.id');
+        $assigned_ids = $course->loadMissing('instructors')->instructors->pluck('id');
 
         return User::whereHas('roles', fn ($query) => $query->whereIn('name', UserRole::values(UserRole::Admin, UserRole::Instructor)))
             ->whereNotIn('id', $assigned_ids)
