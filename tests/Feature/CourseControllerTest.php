@@ -168,7 +168,7 @@ it('updates a course', function () {
     $response->assertRedirect(route('courses.show', $course));
     expect($course->fresh())
         ->title->toBe('Updated Title')
-        ->status->toBe(CourseStatus::Published->value);
+        ->status->toBe(CourseStatus::Published);
 });
 
 it('validates required fields when updating a course', function () {
