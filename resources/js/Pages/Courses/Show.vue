@@ -13,6 +13,7 @@ import Avatar from '@/components/Avatar.vue';
 import UserSelect from '@/components/UserSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import draggable from 'vuedraggable';
+import { fromNow } from "../../lib/date.js";
 
 const props = defineProps({
     course: {
@@ -503,7 +504,7 @@ const movePage = (index, direction) => {
             <div>
               <p class="text-sm text-darker-600 mb-1">Created</p>
               <p class="font-semibold text-darker-900">
-                {{ course.created_at }}
+                {{fromNow( course.created_at )}}
                 <span v-if="course.created_by" class="text-darker-600 font-normal">
                   by {{ course.created_by.first_name }} {{ course.created_by.last_name }}
                 </span>
@@ -512,7 +513,7 @@ const movePage = (index, direction) => {
             <div>
               <p class="text-sm text-darker-600 mb-1">Last Updated</p>
               <p class="font-semibold text-darker-900">
-                {{ course.updated_at }}
+                {{ fromNow(course.updated_at)  }}
                 <span v-if="course.updated_by" class="text-darker-600 font-normal">
                   by {{ course.updated_by.first_name }} {{ course.updated_by.last_name }}
                 </span>
