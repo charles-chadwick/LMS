@@ -10,19 +10,22 @@ use Illuminate\Support\Collection;
 class ListAssignableStudents
 {
     /**
-     * List Student-role users who are neither enrolled in nor instructing the course.
+     * List Student-role users who are neither enrolled in nor instructing the course,
+     * optionally filtered by a name/email search term and capped for a typeahead.
      *
      * @return Collection<int, User>
      */
-    public function execute(Course $course): Collection
+    public function execute(Course $course, ?string $search = null, int $limit = 20): Collection
     {
-        $course->loadMissing(['students', 'instructors']);
-        $excluded_ids = $course->students->pluck('id')->merge($course->instructors->pluck('id'));
-
         return User::whereHas('roles', fn ($query) => $query->where('name', UserRole::Student->value))
-            ->whereNotIn('id', $excluded_ids)
+            ->whereDoesntHave('courses', fn ($query) => $query->whereKey($course->getKey()))
+            ->when($search, fn ($query, $term) => $query->where(fn ($builder) => $builder
+                ->where('first_name', 'like', "%{$term}%")
+                ->orWhere('last_name', 'like', "%{$term}%")
+                ->orWhere('email', 'like', "%{$term}%")))
             ->with('media')
             ->orderBy('first_name')
+            ->limit($limit)
             ->get(['id', 'first_name', 'last_name', 'email']);
     }
 }

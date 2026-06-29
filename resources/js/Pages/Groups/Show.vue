@@ -9,17 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import Avatar from '@/components/Avatar.vue';
 import ConfirmAction from '@/components/ConfirmAction.vue';
-import UserSelect from '@/components/UserSelect.vue';
+import UserSearchSelect from '@/components/UserSearchSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
     group: {
         type: Object,
         required: true,
-    },
-    assignable_users: {
-        type: Array,
-        default: () => [],
     },
     can: {
         type: Object,
@@ -199,14 +195,14 @@ const deleteGroup = () => {
           </div>
 
           <!-- Add member -->
-          <div v-if="canManageMembers && assignable_users.length > 0" class="mt-4 pt-4 border-t border-darker-200">
+          <div v-if="canManageMembers" class="mt-4 pt-4 border-t border-darker-200">
             <div class="flex items-center gap-2">
               <div class="flex-1">
-                <UserSelect
+                <UserSearchSelect
                     v-model="selected_user_id"
-                    :users="assignable_users"
+                    :search-url="route('groups.members.assignable', group.id)"
                     variant="primary"
-                    placeholder="Select a user…"
+                    placeholder="Search for a user…"
                 />
               </div>
               <Button :disabled="!selected_user_id" @click="addMember">
@@ -219,12 +215,6 @@ const deleteGroup = () => {
               <Label for="add_as_leader" class="text-sm text-darker-600">Add as leader</Label>
             </div>
           </div>
-          <p
-              v-else-if="canManageMembers"
-              class="mt-4 pt-4 border-t border-darker-200 text-sm text-darker-500"
-          >
-            All eligible users are already members of this group.
-          </p>
         </CardContent>
       </Card>
 

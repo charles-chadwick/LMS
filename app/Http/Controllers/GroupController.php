@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\Groups\CreateGroup;
 use App\Actions\Groups\DeleteGroup;
 use App\Actions\Groups\ForceDeleteGroup;
-use App\Actions\Groups\ListAssignableUsers;
 use App\Actions\Groups\ListGroups;
 use App\Actions\Groups\LoadGroupDetails;
 use App\Actions\Groups\RestoreGroup;
@@ -69,7 +68,7 @@ class GroupController extends Controller
     /**
      * Display the specified group.
      */
-    public function show(Request $request, Group $group, LoadGroupDetails $loadGroupDetails, ListAssignableUsers $listAssignableUsers): Response
+    public function show(Request $request, Group $group, LoadGroupDetails $loadGroupDetails): Response
     {
         $this->authorize('view', $group);
 
@@ -77,7 +76,6 @@ class GroupController extends Controller
 
         return Inertia::render('Groups/Show', [
             'group' => $group,
-            'assignable_users' => $listAssignableUsers->execute($group),
             'can' => [
                 'update' => $request->user()->can('update', $group),
                 'delete' => $request->user()->can('delete', $group),

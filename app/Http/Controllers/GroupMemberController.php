@@ -3,16 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Groups\AssignMember;
+use App\Actions\Groups\ListAssignableUsers;
 use App\Actions\Groups\RemoveMember;
 use App\Actions\Groups\UpdateMember;
 use App\Http\Requests\StoreGroupMemberRequest;
 use App\Http\Requests\UpdateGroupMemberRequest;
 use App\Models\Group;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class GroupMemberController extends Controller
 {
+    /**
+     * Search instructors and students who can still join the group (typeahead).
+     */
+    public function assignable(Request $request, Group $group, ListAssignableUsers $listAssignableUsers): JsonResponse
+    {
+        $this->authorize('manageMembers', $group);
+
+        return response()->json(
+            $listAssignableUsers->execute($group, $request->string('search')->toString() ?: null)
+        );
+    }
+
     /**
      * Add a member to the group.
      */

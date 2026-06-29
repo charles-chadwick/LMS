@@ -4,8 +4,8 @@ use App\Actions\Courses\AssignStudent;
 use App\Actions\Courses\RemoveStudent;
 use App\Enums\UserRole;
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -134,33 +134,40 @@ it('forbids a non-manager from removing a student', function () {
     expect($course->students()->whereKey($student->id)->exists())->toBeTrue();
 });
 
-it('exposes assignable students and the manage flag to a manager', function () {
+it('searches assignable students for a manager, excluding the enrolled', function () {
     [$course] = courseWithManager();
     $candidate = userWithRole(UserRole::Student);
     $enrolled = userWithRole(UserRole::Student);
     $course->students()->attach($enrolled, ['is_instructor' => false]);
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
-        ->get(route('courses.show', $course));
+        ->getJson(route('courses.students.assignable', $course));
 
-    $response->assertInertia(fn (Assert $page) => $page
-        ->where('can.manage_students', true)
-        ->where('assignable_students', fn ($candidates) => collect($candidates)->contains('id', $candidate->id)
-            && ! collect($candidates)->contains('id', $enrolled->id))
-    );
+    $response->assertOk();
+    $ids = collect($response->json())->pluck('id');
+    expect($ids)->toContain($candidate->id)->not->toContain($enrolled->id);
 });
 
-it('hides assignable students from a non-manager', function () {
+it('filters assignable students by the search term', function () {
     [$course] = courseWithManager();
-    userWithRole(UserRole::Student);
+    $match = userWithRole(UserRole::Student);
+    $match->update(['first_name' => 'Searchable', 'last_name' => 'Learner']);
+    userWithRole(UserRole::Student); // noise, should not match
 
-    $response = $this->actingAs(userWithRole(UserRole::Student))
-        ->get(route('courses.show', $course));
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->getJson(route('courses.students.assignable', ['course' => $course, 'search' => 'Searchable']));
 
-    $response->assertInertia(fn (Assert $page) => $page
-        ->where('can.manage_students', false)
-        ->where('assignable_students', [])
-    );
+    $response->assertOk();
+    $ids = collect($response->json())->pluck('id');
+    expect($ids)->toContain($match->id)->toHaveCount(1);
+});
+
+it('forbids a non-manager from searching assignable students', function () {
+    [$course] = courseWithManager();
+
+    $this->actingAs(userWithRole(UserRole::Student))
+        ->getJson(route('courses.students.assignable', $course))
+        ->assertForbidden();
 });
 
 it('rejects enrolling a user who instructs the course', function () {

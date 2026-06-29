@@ -10,10 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
 import Avatar from '@/components/Avatar.vue';
-import UserSelect from '@/components/UserSelect.vue';
+import UserSearchSelect from '@/components/UserSearchSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import draggable from 'vuedraggable';
-import { fromNow } from "../../lib/date.js";
+import { fromNow } from "@/lib/date.js";
 
 const props = defineProps({
     course: {
@@ -23,14 +23,6 @@ const props = defineProps({
     can: {
         type: Object,
         default: () => ({ update: false, manage_instructors: false, manage_students: false }),
-    },
-    assignable_instructors: {
-        type: Array,
-        default: () => [],
-    },
-    assignable_students: {
-        type: Array,
-        default: () => [],
     },
 });
 
@@ -312,13 +304,13 @@ const movePage = (index, direction) => {
             </div>
 
             <!-- Add instructor -->
-            <div v-if="canManageInstructors && assignable_instructors.length > 0" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
+            <div v-if="canManageInstructors" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
               <div class="flex-1">
-                <UserSelect
+                <UserSearchSelect
                     v-model="selected_instructor_id"
-                    :users="assignable_instructors"
+                    :search-url="route('courses.instructors.assignable', course.id)"
                     variant="primary"
-                    placeholder="Select an instructor…"
+                    placeholder="Search for an instructor…"
                 />
               </div>
               <Button :disabled="!selected_instructor_id" @click="addInstructor">
@@ -371,13 +363,13 @@ const movePage = (index, direction) => {
             </div>
 
             <!-- Add student -->
-            <div v-if="canManageStudents && assignable_students.length > 0" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
+            <div v-if="canManageStudents" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
               <div class="flex-1">
-                <UserSelect
+                <UserSearchSelect
                     v-model="selected_student_id"
-                    :users="assignable_students"
+                    :search-url="route('courses.students.assignable', course.id)"
                     variant="accent"
-                    placeholder="Select a student…"
+                    placeholder="Search for a student…"
                 />
               </div>
               <Button :disabled="!selected_student_id" @click="addStudent">

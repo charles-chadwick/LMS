@@ -3,14 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Courses\AssignInstructor;
+use App\Actions\Courses\ListAssignableInstructors;
 use App\Actions\Courses\RemoveInstructor;
 use App\Http\Requests\StoreCourseInstructorRequest;
 use App\Models\Course;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class CourseInstructorController extends Controller
 {
+    /**
+     * Search instructors who can still be assigned to the course (typeahead).
+     */
+    public function assignable(Request $request, Course $course, ListAssignableInstructors $listAssignableInstructors): JsonResponse
+    {
+        $this->authorize('manageInstructors', $course);
+
+        return response()->json(
+            $listAssignableInstructors->execute($course, $request->string('search')->toString() ?: null)
+        );
+    }
+
     /**
      * Assign an instructor to the course.
      */

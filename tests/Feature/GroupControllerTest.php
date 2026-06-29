@@ -82,12 +82,10 @@ it('rejects an invalid type when creating a group', function () {
     $response->assertSessionHasErrors('type');
 });
 
-it('shows a group with its members and assignable users', function () {
+it('shows a group with its members', function () {
     $group = Group::factory()->general()->create();
     $student = userWithRole(UserRole::Student);
     $group->users()->attach($student, ['is_leader' => false]);
-
-    $other_student = userWithRole(UserRole::Student);
 
     $response = $this->get(route('groups.show', $group));
 
@@ -96,9 +94,47 @@ it('shows a group with its members and assignable users', function () {
         ->component('Groups/Show')
         ->where('group.id', $group->id)
         ->has('group.users', 1)
-        ->has('assignable_users', 1)
-        ->where('assignable_users.0.id', $other_student->id)
     );
+});
+
+it('searches assignable members, including instructors and students but excluding existing members', function () {
+    $group = Group::factory()->general()->create();
+    $member = userWithRole(UserRole::Student);
+    $group->users()->attach($member, ['is_leader' => false]);
+
+    $student = userWithRole(UserRole::Student);
+    $instructor = userWithRole(UserRole::Instructor);
+    $admin = userWithRole(UserRole::Admin); // ineligible, must be excluded
+
+    $response = $this->getJson(route('groups.members.assignable', $group));
+
+    $response->assertOk();
+    $ids = collect($response->json())->pluck('id');
+    expect($ids)->toContain($student->id)
+        ->toContain($instructor->id)
+        ->not->toContain($member->id)
+        ->not->toContain($admin->id);
+});
+
+it('filters assignable members by the search term', function () {
+    $group = Group::factory()->general()->create();
+    $match = userWithRole(UserRole::Student);
+    $match->update(['first_name' => 'Searchable', 'last_name' => 'Member']);
+    userWithRole(UserRole::Student); // noise, should not match
+
+    $response = $this->getJson(route('groups.members.assignable', ['group' => $group, 'search' => 'Searchable']));
+
+    $response->assertOk();
+    $ids = collect($response->json())->pluck('id');
+    expect($ids)->toContain($match->id)->toHaveCount(1);
+});
+
+it('forbids a non-admin from searching assignable members', function () {
+    $group = Group::factory()->general()->create();
+
+    $this->actingAs(userWithRole(UserRole::Instructor))
+        ->getJson(route('groups.members.assignable', $group))
+        ->assertForbidden();
 });
 
 it('updates a group', function () {

@@ -49,6 +49,9 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
     // Permanently delete course
     Route::delete('/{id}/force', [CourseController::class, 'forceDestroy'])->name('forceDestroy');
 
+    // Search instructors who can still be assigned (typeahead)
+    Route::get('/{course}/instructors/assignable', [CourseInstructorController::class, 'assignable'])->name('instructors.assignable');
+
     // Assign an instructor to a course
     Route::post('/{course}/instructors', [CourseInstructorController::class, 'store'])->name('instructors.store');
 
@@ -63,6 +66,9 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
     Route::post('/{course}/learn/{page}/complete', [CourseLearnController::class, 'complete'])
         ->scopeBindings()
         ->name('learn.complete');
+
+    // Search students who can still be enrolled (typeahead)
+    Route::get('/{course}/students/assignable', [CourseStudentController::class, 'assignable'])->name('students.assignable');
 
     // Enroll a student in a course
     Route::post('/{course}/students', [CourseStudentController::class, 'store'])->name('students.store');
@@ -132,6 +138,9 @@ Route::middleware('auth')->prefix('groups')->name('groups.')->group(function () 
 
     // Permanently delete group
     Route::delete('/{id}/force', [GroupController::class, 'forceDestroy'])->name('forceDestroy');
+
+    // Search instructors and students who can still join the group (typeahead)
+    Route::get('/{group}/members/assignable', [GroupMemberController::class, 'assignable'])->name('members.assignable');
 
     // Add a member to the group
     Route::post('/{group}/members', [GroupMemberController::class, 'store'])->name('members.store');

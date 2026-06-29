@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\Courses\CreateCourse;
 use App\Actions\Courses\DeleteCourse;
 use App\Actions\Courses\ForceDeleteCourse;
-use App\Actions\Courses\ListAssignableInstructors;
-use App\Actions\Courses\ListAssignableStudents;
 use App\Actions\Courses\ListCourses;
 use App\Actions\Courses\LoadCourseDetails;
 use App\Actions\Courses\RestoreCourse;
@@ -68,24 +66,15 @@ class CourseController extends Controller
     /**
      * Display the specified course.
      */
-    public function show(Request $request, Course $course, LoadCourseDetails $loadCourseDetails, ListAssignableInstructors $listAssignableInstructors, ListAssignableStudents $listAssignableStudents): Response
+    public function show(Request $request, Course $course, LoadCourseDetails $loadCourseDetails): Response
     {
-        $can_manage_instructors = $request->user()->can('manageInstructors', $course);
-        $can_manage_students = $request->user()->can('manageStudents', $course);
-
         return Inertia::render('Courses/Show', [
             'course' => $loadCourseDetails->execute($course),
             'can' => [
                 'update' => $request->user()->can('update', $course),
-                'manage_instructors' => $can_manage_instructors,
-                'manage_students' => $can_manage_students,
+                'manage_instructors' => $request->user()->can('manageInstructors', $course),
+                'manage_students' => $request->user()->can('manageStudents', $course),
             ],
-            'assignable_instructors' => $can_manage_instructors
-                ? $listAssignableInstructors->execute($course)
-                : [],
-            'assignable_students' => $can_manage_students
-                ? $listAssignableStudents->execute($course)
-                : [],
         ]);
     }
 
