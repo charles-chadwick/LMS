@@ -29,7 +29,7 @@ const props = defineProps({
 const is_editing = computed(() => props.group !== null);
 
 const form = useForm({
-    type: props.group?.type || 'Student',
+    type: props.group?.type || props.type_options[0]?.value,
     name: props.group?.name || '',
     description: props.group?.description || '',
 });

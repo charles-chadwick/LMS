@@ -61,8 +61,8 @@ watch([search, type_filter], () => {
 
 const getTypeVariant = (type) => {
     const variants = {
-        Instructor: 'secondary',
-        Student: 'outline',
+        General: 'secondary',
+        Private: 'outline',
     };
     return variants[type] || 'secondary';
 };

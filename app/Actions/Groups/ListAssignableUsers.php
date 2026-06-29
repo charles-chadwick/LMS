@@ -2,6 +2,7 @@
 
 namespace App\Actions\Groups;
 
+use App\Enums\UserRole;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -12,7 +13,7 @@ class ListAssignableUsers
     use AsAction;
 
     /**
-     * List users whose role matches the group type and who are not yet members.
+     * List instructors and students who are not yet members of the group.
      *
      * @return Collection<int, User>
      */
@@ -20,7 +21,7 @@ class ListAssignableUsers
     {
         $member_ids = $group->users()->pluck('users.id');
 
-        return User::whereHas('roles', fn ($query) => $query->where('name', $group->type->toUserRole()->value))
+        return User::whereHas('roles', fn ($query) => $query->whereIn('name', UserRole::values(UserRole::Instructor, UserRole::Student)))
             ->whereNotIn('id', $member_ids)
             ->with('media')
             ->orderBy('first_name')

@@ -39,20 +39,20 @@ it('filters groups by search term', function () {
 });
 
 it('filters groups by type', function () {
-    Group::factory()->instructors()->create();
-    Group::factory()->students()->create();
+    Group::factory()->general()->create();
+    Group::factory()->private()->create();
 
-    $response = $this->get(route('groups.index', ['type' => GroupType::Instructor->value]));
+    $response = $this->get(route('groups.index', ['type' => GroupType::General->value]));
 
     $response->assertInertia(fn (Assert $page) => $page
         ->has('groups.data', 1)
-        ->where('groups.data.0.type', GroupType::Instructor->value)
+        ->where('groups.data.0.type', GroupType::General->value)
     );
 });
 
 it('creates a group', function () {
     $response = $this->post(route('groups.store'), [
-        'type' => GroupType::Student->value,
+        'type' => GroupType::General->value,
         'name' => 'Cohort A',
         'description' => 'The first student cohort.',
     ]);
@@ -60,7 +60,7 @@ it('creates a group', function () {
     $group = Group::firstWhere('name', 'Cohort A');
 
     expect($group)->not->toBeNull()
-        ->and($group->type)->toBe(GroupType::Student)
+        ->and($group->type)->toBe(GroupType::General)
         ->and($group->description)->toBe('The first student cohort.');
     $response->assertRedirect(route('groups.show', $group));
     $response->assertSessionHas('success');
@@ -83,7 +83,7 @@ it('rejects an invalid type when creating a group', function () {
 });
 
 it('shows a group with its members and assignable users', function () {
-    $group = Group::factory()->students()->create();
+    $group = Group::factory()->general()->create();
     $student = userWithRole(UserRole::Student);
     $group->users()->attach($student, ['is_leader' => false]);
 
@@ -102,10 +102,10 @@ it('shows a group with its members and assignable users', function () {
 });
 
 it('updates a group', function () {
-    $group = Group::factory()->students()->create();
+    $group = Group::factory()->general()->create();
 
     $response = $this->put(route('groups.update', $group), [
-        'type' => GroupType::Instructor->value,
+        'type' => GroupType::General->value,
         'name' => 'Renamed Group',
         'description' => 'Updated description.',
     ]);
@@ -113,7 +113,7 @@ it('updates a group', function () {
     $group->refresh();
 
     expect($group->name)->toBe('Renamed Group')
-        ->and($group->type)->toBe(GroupType::Instructor);
+        ->and($group->type)->toBe(GroupType::General);
     $response->assertRedirect(route('groups.show', $group));
 });
 
@@ -154,8 +154,8 @@ it('forbids non-admins from managing groups', function () {
         ->assertForbidden();
 });
 
-it('adds a member whose role matches the group type', function () {
-    $group = Group::factory()->students()->create();
+it('adds an instructor or student as a member', function () {
+    $group = Group::factory()->general()->create();
     $student = userWithRole(UserRole::Student);
 
     $response = $this->post(route('groups.members.store', $group), [
@@ -168,12 +168,12 @@ it('adds a member whose role matches the group type', function () {
         ->and($group->leaders()->whereKey($student->id)->exists())->toBeTrue();
 });
 
-it('rejects a member whose role does not match the group type', function () {
-    $group = Group::factory()->students()->create();
-    $instructor = userWithRole(UserRole::Instructor);
+it('rejects a member who is neither an instructor nor a student', function () {
+    $group = Group::factory()->general()->create();
+    $admin = userWithRole(UserRole::Admin);
 
     $response = $this->post(route('groups.members.store', $group), [
-        'user_id' => $instructor->id,
+        'user_id' => $admin->id,
     ]);
 
     $response->assertSessionHasErrors('user_id');
@@ -181,7 +181,7 @@ it('rejects a member whose role does not match the group type', function () {
 });
 
 it('rejects a duplicate member', function () {
-    $group = Group::factory()->students()->create();
+    $group = Group::factory()->general()->create();
     $student = userWithRole(UserRole::Student);
     $group->users()->attach($student, ['is_leader' => false]);
 
@@ -193,7 +193,7 @@ it('rejects a duplicate member', function () {
 });
 
 it('toggles a member leadership status', function () {
-    $group = Group::factory()->students()->create();
+    $group = Group::factory()->general()->create();
     $student = userWithRole(UserRole::Student);
     $group->users()->attach($student, ['is_leader' => false]);
 
@@ -206,7 +206,7 @@ it('toggles a member leadership status', function () {
 });
 
 it('removes a member', function () {
-    $group = Group::factory()->students()->create();
+    $group = Group::factory()->general()->create();
     $student = userWithRole(UserRole::Student);
     $group->users()->attach($student, ['is_leader' => false]);
 

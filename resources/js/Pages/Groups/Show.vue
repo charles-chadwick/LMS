@@ -31,8 +31,8 @@ const canManageMembers = computed(() => props.can.manage_members);
 
 const getTypeVariant = (type) => {
     const variants = {
-        Instructor: 'secondary',
-        Student: 'outline',
+        General: 'secondary',
+        Private: 'outline',
     };
     return variants[type] || 'secondary';
 };
@@ -206,7 +206,7 @@ const deleteGroup = () => {
                     v-model="selected_user_id"
                     :users="assignable_users"
                     variant="primary"
-                    :placeholder="`Select a ${group.type.toLowerCase()}…`"
+                    placeholder="Select a user…"
                 />
               </div>
               <Button :disabled="!selected_user_id" @click="addMember">
@@ -223,7 +223,7 @@ const deleteGroup = () => {
               v-else-if="canManageMembers"
               class="mt-4 pt-4 border-t border-darker-200 text-sm text-darker-500"
           >
-            All eligible {{ group.type.toLowerCase() }}s are already members of this group.
+            All eligible users are already members of this group.
           </p>
         </CardContent>
       </Card>

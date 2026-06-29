@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,8 +38,8 @@ class StoreGroupMemberRequest extends FormRequest
                         return;
                     }
 
-                    if (! $user->hasRole($group->type->toUserRole())) {
-                        $fail("The selected user must be a {$group->type->value}.");
+                    if (! $user->hasAnyRole([UserRole::Instructor, UserRole::Student])) {
+                        $fail('The selected user must be an instructor or student.');
                     } elseif ($group->users()->whereKey($value)->exists()) {
                         $fail('This user is already a member of the group.');
                     }

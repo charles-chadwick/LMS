@@ -42,16 +42,4 @@ class StoreGroupRequest extends FormRequest
             'type' => 'group type',
         ];
     }
-
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'type.in' => 'The :attribute must be Instructor or Student.',
-        ];
-    }
 }

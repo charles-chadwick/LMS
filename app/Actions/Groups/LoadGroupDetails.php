@@ -20,8 +20,6 @@ class LoadGroupDetails
                     ->with('media')
                     ->orderBy('first_name');
             },
-            'created_by:id,first_name,last_name',
-            'updated_by:id,first_name,last_name',
         ]);
 
         $group->loadCount('users');

@@ -29,22 +29,22 @@ class GroupFactory extends Factory
     }
 
     /**
-     * Indicate that the group is for instructors.
+     * Indicate that the group is general.
      */
-    public function instructors(): static
+    public function general(): static
     {
         return $this->state(fn (array $attributes) => [
-            'type' => GroupType::Instructor,
+            'type' => GroupType::General,
         ]);
     }
 
     /**
-     * Indicate that the group is for students.
+     * Indicate that the group is private.
      */
-    public function students(): static
+    public function private(): static
     {
         return $this->state(fn (array $attributes) => [
-            'type' => GroupType::Student,
+            'type' => GroupType::Private,
         ]);
     }
 }
