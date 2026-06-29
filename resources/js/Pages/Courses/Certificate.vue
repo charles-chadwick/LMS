@@ -13,6 +13,15 @@ const props = defineProps({
 
 const studentName = computed(() => `${props.student.first_name ?? ''} ${props.student.last_name ?? ''}`.trim());
 
+const formattedCompletedAt = computed(() => {
+    if (!props.completed_at) {
+        return null;
+    }
+    return new Date(props.completed_at.replace(' ', 'T')).toLocaleDateString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric',
+    });
+});
+
 const printCertificate = () => {
     window.print();
 };
@@ -44,7 +53,7 @@ const printCertificate = () => {
         <p class="text-darker-600 mb-2">has successfully completed</p>
         <h2 class="text-2xl font-semibold text-darker-900">{{ course.title }}</h2>
         <p class="font-mono text-darker-500 mb-8">{{ course.code }}</p>
-        <p v-if="completed_at" class="text-darker-600">Completed on {{ completed_at }}</p>
+        <p v-if="formattedCompletedAt" class="text-darker-600">Completed on {{ formattedCompletedAt }}</p>
       </div>
     </div>
   </AppLayout>

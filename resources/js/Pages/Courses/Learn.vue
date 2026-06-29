@@ -89,33 +89,35 @@ const currentIsCompleted = computed(() =>
 
         <!-- Main panel -->
         <div>
-          <Card v-if="is_complete" class="shadow-lg">
-            <CardContent class="pt-6 text-center py-16">
-              <CheckCircle2 class="w-16 h-16 text-primary-600 mx-auto mb-4" />
-              <h1 class="text-3xl font-bold text-darker-900 mb-2">Course complete!</h1>
-              <p class="text-darker-600 mb-8">You have completed every page of this course.</p>
+          <template v-if="current_page">
+            <div v-if="is_complete" class="mb-4 flex items-center gap-4 rounded-lg border border-primary-200 bg-primary-50 px-5 py-4 shadow-sm">
+              <Award class="w-6 h-6 shrink-0 text-primary-600" />
+              <div class="flex-1">
+                <p class="font-semibold text-primary-800">Course complete!</p>
+                <p class="text-sm text-primary-700">You have completed every page of this course.</p>
+              </div>
               <Link :href="route('courses.certificate', course.id)">
-                <Button class="px-6">
+                <Button class="px-4" variant="outline">
                   <Award class="w-4 h-4" />
                   View certificate
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card v-else-if="current_page" class="shadow-lg">
-            <CardContent class="pt-6">
-              <h1 class="text-3xl font-bold text-darker-900 mb-6">{{ current_page.title }}</h1>
-              <div class="prose max-w-none" v-html="current_page.content"></div>
+            <Card class="shadow-lg">
+              <CardContent class="pt-6">
+                <h1 class="text-3xl font-bold text-darker-900 mb-6">{{ current_page.title }}</h1>
+                <div class="prose max-w-none" v-html="current_page.content"></div>
 
-              <div class="mt-8 pt-6 border-t border-darker-200 flex justify-end">
-                <Button class="px-6" @click="completeAndContinue">
-                  <Check class="w-4 h-4" />
-                  {{ currentIsCompleted ? 'Continue' : 'Mark complete & continue' }}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                <div class="mt-8 pt-6 border-t border-darker-200 flex justify-end">
+                  <Button class="px-6" @click="completeAndContinue">
+                    <Check class="w-4 h-4" />
+                    {{ currentIsCompleted ? 'Continue' : 'Mark complete & continue' }}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </template>
 
           <Card v-else class="shadow-lg">
             <CardContent class="pt-6 text-center py-16">

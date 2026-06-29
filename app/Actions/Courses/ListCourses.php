@@ -61,11 +61,14 @@ class ListCourses
             ->pluck('total', 'course_id');
 
         $completed_page_counts = DB::table('user_progress')
-            ->where('user_id', $user->id)
-            ->whereIn('course_id', $enrolled_student_course_ids)
-            ->whereNull('deleted_at')
-            ->groupBy('course_id')
-            ->selectRaw('course_id, count(*) as completed')
+            ->join('pages', 'pages.id', '=', 'user_progress.page_id')
+            ->where('user_progress.user_id', $user->id)
+            ->whereIn('user_progress.course_id', $enrolled_student_course_ids)
+            ->where('pages.status', CourseStatus::Published->value)
+            ->whereNull('user_progress.deleted_at')
+            ->whereNull('pages.deleted_at')
+            ->groupBy('user_progress.course_id')
+            ->selectRaw('user_progress.course_id as course_id, count(*) as completed')
             ->pluck('completed', 'course_id');
 
         return $query->paginate($request->input('perPage', 15))

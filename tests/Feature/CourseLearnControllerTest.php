@@ -95,3 +95,22 @@ it('attaches take and progress data to the course index for enrolled students', 
             ->where('courses.data.0.progress_percent', 50)
         );
 });
+
+it('index progress percent counts only published completed pages', function () {
+    [$course, $student, $pages] = publishedCourseWithStudent(2);
+
+    // Complete one published page.
+    UserProgress::create(['user_id' => $student->id, 'course_id' => $course->id, 'page_id' => $pages[0]->id]);
+
+    // Also record progress for a draft page (simulates a page completed then unpublished).
+    $draft_page = Page::factory()->forCourse($course, 3)->create(['status' => CourseStatus::Draft]);
+    UserProgress::create(['user_id' => $student->id, 'course_id' => $course->id, 'page_id' => $draft_page->id]);
+
+    // 1 of 2 published pages completed = 50%, not 66% or 100%.
+    $this->actingAs($student)
+        ->get(route('courses.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Courses/Index')
+            ->where('courses.data.0.progress_percent', 50)
+        );
+});
