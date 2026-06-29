@@ -57,3 +57,31 @@ it('excludes courses whose enrollment was soft deleted', function () {
         ->get(route('courses.index'))
         ->assertInertia(fn (Assert $page) => $page->has('courses.data', 0));
 });
+
+it('lets a student open a course they are assigned to', function () {
+    $student = userWithRole(UserRole::Student);
+    $course = Course::factory()->create();
+    $course->students()->attach($student, ['is_instructor' => false]);
+
+    $this->actingAs($student)
+        ->get(route('courses.show', $course))
+        ->assertOk();
+});
+
+it('forbids a student from opening a course they are not assigned to', function () {
+    $student = userWithRole(UserRole::Student);
+    $course = Course::factory()->create();
+
+    $this->actingAs($student)
+        ->get(route('courses.show', $course))
+        ->assertForbidden();
+});
+
+it('lets an admin open any course', function () {
+    $admin = userWithRole(UserRole::Admin);
+    $course = Course::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('courses.show', $course))
+        ->assertOk();
+});
