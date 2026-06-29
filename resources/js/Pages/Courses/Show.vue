@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { router, Head } from '@inertiajs/vue3';
 import {
     ArrowLeft, Pencil, Trash2, Tag as TagIcon, Users, User, FileText,
-    Plus, ChevronUp, ChevronDown, Info, AlignLeft, X, UserPlus,
+    Plus, ChevronUp, ChevronDown, Info, AlignLeft, X, UserPlus, GripVertical,
 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import ConfirmAction from '@/components/ConfirmAction.vue';
 import Avatar from '@/components/Avatar.vue';
 import UserSelect from '@/components/UserSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import draggable from 'vuedraggable';
 
 const props = defineProps({
     course: {
@@ -125,23 +126,42 @@ const deletePage = (page) => {
     router.delete(route('pages.destroy', page.id), { preserveScroll: true });
 };
 
-const persistPageOrder = (ordered_pages) => {
+const ordered_pages = ref([...(props.course.pages ?? [])]);
+
+watch(
+    () => props.course.pages,
+    (pages) => {
+        ordered_pages.value = [...(pages ?? [])];
+    },
+);
+
+const onDragEnd = () => {
+    persistPageOrder(ordered_pages.value);
+};
+
+const persistPageOrder = (pages_in_order) => {
+    const new_order = pages_in_order.map((page) => page.id);
+    const current_order = (props.course.pages ?? []).map((page) => page.id);
+    if (new_order.join(',') === current_order.join(',')) {
+        return;
+    }
     router.put(
         route('pages.reorder', props.course.id),
-        { pages: ordered_pages.map((page) => page.id) },
+        { pages: new_order },
         { preserveScroll: true },
     );
 };
 
 const movePage = (index, direction) => {
     const target_index = index + direction;
-    if (target_index < 0 || target_index >= props.course.pages.length) {
+    if (target_index < 0 || target_index >= ordered_pages.value.length) {
         return;
     }
-    const ordered_pages = [...props.course.pages];
-    [ordered_pages[index], ordered_pages[target_index]] =
-        [ordered_pages[target_index], ordered_pages[index]];
-    persistPageOrder(ordered_pages);
+    const reordered = [...ordered_pages.value];
+    [reordered[index], reordered[target_index]] =
+        [reordered[target_index], reordered[index]];
+    ordered_pages.value = reordered;
+    persistPageOrder(reordered);
 };
 </script>
 
@@ -383,66 +403,82 @@ const movePage = (index, direction) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div v-if="course.pages && course.pages.length > 0" class="space-y-3">
-            <div
-                v-for="(page, index) in course.pages"
-                :key="page.id"
-                class="flex items-center justify-between p-4 bg-darker-50 rounded-lg hover:bg-darker-100 transition-colors"
-            >
-              <div class="flex items-center gap-3">
-                <div v-if="canManage" class="flex flex-col">
+          <draggable
+              v-if="ordered_pages.length > 0"
+              v-model="ordered_pages"
+              item-key="id"
+              handle=".page-drag-handle"
+              :disabled="!canManage"
+              class="space-y-3"
+              @end="onDragEnd"
+          >
+            <template #item="{ element: page, index }">
+              <div
+                  class="flex items-center justify-between p-4 bg-darker-50 rounded-lg hover:bg-darker-100 transition-colors"
+              >
+                <div class="flex items-center gap-3">
                   <button
+                      v-if="canManage"
                       type="button"
-                      class="text-darker-400 hover:text-primary-600 disabled:opacity-30"
-                      :disabled="index === 0"
-                      aria-label="Move page up"
-                      @click="movePage(index, -1)"
+                      class="page-drag-handle cursor-grab active:cursor-grabbing text-darker-400 hover:text-primary-600"
+                      aria-label="Drag to reorder page"
                   >
-                    <ChevronUp class="w-4 h-4" />
+                    <GripVertical class="w-4 h-4" />
                   </button>
-                  <button
-                      type="button"
-                      class="text-darker-400 hover:text-primary-600 disabled:opacity-30"
-                      :disabled="index === course.pages.length - 1"
-                      aria-label="Move page down"
-                      @click="movePage(index, 1)"
-                  >
-                    <ChevronDown class="w-4 h-4" />
-                  </button>
+                  <div v-if="canManage" class="flex flex-col">
+                    <button
+                        type="button"
+                        class="text-darker-400 hover:text-primary-600 disabled:opacity-30"
+                        :disabled="index === 0"
+                        aria-label="Move page up"
+                        @click="movePage(index, -1)"
+                    >
+                      <ChevronUp class="w-4 h-4" />
+                    </button>
+                    <button
+                        type="button"
+                        class="text-darker-400 hover:text-primary-600 disabled:opacity-30"
+                        :disabled="index === ordered_pages.length - 1"
+                        aria-label="Move page down"
+                        @click="movePage(index, 1)"
+                    >
+                      <ChevronDown class="w-4 h-4" />
+                    </button>
+                  </div>
+                  <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-200 text-primary-700 font-semibold text-sm">
+                    {{ index + 1 }}
+                  </span>
+                  <div>
+                    <button
+                        type="button"
+                        class="font-semibold text-darker-900 hover:text-primary-600 text-left"
+                        @click="viewPage(page)"
+                    >
+                      {{ page.title }}
+                    </button>
+                    <p class="text-sm text-darker-600">Status: {{ page.status }}</p>
+                  </div>
                 </div>
-                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-200 text-primary-700 font-semibold text-sm">
-                  {{ page.order }}
-                </span>
-                <div>
-                  <button
-                      type="button"
-                      class="font-semibold text-darker-900 hover:text-primary-600 text-left"
-                      @click="viewPage(page)"
-                  >
-                    {{ page.title }}
-                  </button>
-                  <p class="text-sm text-darker-600">Status: {{ page.status }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <template v-if="canManage">
-                  <Button variant="ghost" size="icon-sm" aria-label="Edit page" @click="editPage(page)">
-                    <Pencil class="w-4 h-4" />
-                  </Button>
-                  <ConfirmAction
-                      title="Delete page?"
-                      :description="`Are you sure you want to delete &quot;${page.title}&quot;?`"
-                      confirm-label="Delete"
-                      @confirm="deletePage(page)"
-                  >
-                    <Button variant="ghost" size="icon-sm" class="text-destructive hover:bg-destructive/10" aria-label="Delete page">
-                      <Trash2 class="w-4 h-4" />
+                <div class="flex items-center gap-2">
+                  <template v-if="canManage">
+                    <Button variant="ghost" size="icon-sm" aria-label="Edit page" @click="editPage(page)">
+                      <Pencil class="w-4 h-4" />
                     </Button>
-                  </ConfirmAction>
-                </template>
+                    <ConfirmAction
+                        title="Delete page?"
+                        :description="`Are you sure you want to delete &quot;${page.title}&quot;?`"
+                        confirm-label="Delete"
+                        @confirm="deletePage(page)"
+                    >
+                      <Button variant="ghost" size="icon-sm" class="text-destructive hover:bg-destructive/10" aria-label="Delete page">
+                        <Trash2 class="w-4 h-4" />
+                      </Button>
+                    </ConfirmAction>
+                  </template>
+                </div>
               </div>
-            </div>
-          </div>
+            </template>
+          </draggable>
           <div v-else class="text-center py-8 text-darker-500">
             <FileText class="w-10 h-10 mb-3 mx-auto" />
             <p class="mb-4">No pages created yet</p>
