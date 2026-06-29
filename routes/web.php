@@ -5,6 +5,8 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseInstructorController;
 use App\Http\Controllers\CourseLearnController;
 use App\Http\Controllers\CourseStudentController;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -100,6 +102,45 @@ Route::middleware('auth')->prefix('users')->name('users.')->group(function () {
 
     // Permanently delete user
     Route::delete('/{id}/force', [UserController::class, 'forceDestroy'])->name('forceDestroy');
+});
+
+// Group Routes
+Route::middleware('auth')->prefix('groups')->name('groups.')->group(function () {
+    // List all groups
+    Route::get('/', [GroupController::class, 'index'])->name('index');
+
+    // Show create form
+    Route::get('/create', [GroupController::class, 'create'])->name('create');
+
+    // Store new group
+    Route::post('/', [GroupController::class, 'store'])->name('store');
+
+    // Show a single group
+    Route::get('/{group}', [GroupController::class, 'show'])->name('show');
+
+    // Show edit form
+    Route::get('/{group}/edit', [GroupController::class, 'edit'])->name('edit');
+
+    // Update group
+    Route::put('/{group}', [GroupController::class, 'update'])->name('update');
+
+    // Soft delete group
+    Route::delete('/{group}', [GroupController::class, 'destroy'])->name('destroy');
+
+    // Restore soft deleted group
+    Route::post('/{id}/restore', [GroupController::class, 'restore'])->name('restore');
+
+    // Permanently delete group
+    Route::delete('/{id}/force', [GroupController::class, 'forceDestroy'])->name('forceDestroy');
+
+    // Add a member to the group
+    Route::post('/{group}/members', [GroupMemberController::class, 'store'])->name('members.store');
+
+    // Update a member's leadership status
+    Route::put('/{group}/members/{user}', [GroupMemberController::class, 'update'])->name('members.update');
+
+    // Remove a member from the group
+    Route::delete('/{group}/members/{user}', [GroupMemberController::class, 'destroy'])->name('members.destroy');
 });
 
 // Reorder the pages within a course

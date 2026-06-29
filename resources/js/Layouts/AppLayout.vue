@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Menu, Home, BookOpen, Users, MessagesSquare, User, LogOut } from 'lucide-vue-next';
+import { Menu, Home, BookOpen, Users, UsersRound, MessagesSquare, User, LogOut } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
@@ -21,6 +21,7 @@ const allNavigationItems = [
     { label: 'Dashboard', icon: Home, route: 'dashboard' },
     { label: 'Courses', icon: BookOpen, route: 'courses.index' },
     { label: 'Users', icon: Users, route: 'users.index' },
+    { label: 'Groups', icon: UsersRound, route: 'groups.index' },
     { label: 'Discussions', icon: MessagesSquare, route: 'discussions.index' },
 ];
 
