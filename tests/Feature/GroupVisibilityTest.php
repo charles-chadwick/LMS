@@ -71,6 +71,22 @@ it('excludes a group with soft-deleted membership from the index', function () {
         ->assertInertia(fn (Assert $page) => $page->has('groups.data', 0));
 });
 
+it('marks index rows updatable for a leading instructor but not for a student leader', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $student = userWithRole(UserRole::Student);
+    $group = Group::factory()->create();
+    $group->users()->attach($instructor, ['is_leader' => true]);
+    $group->users()->attach($student, ['is_leader' => true]);
+
+    $this->actingAs($instructor)
+        ->get(route('groups.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('groups.data.0.can_update', true));
+
+    $this->actingAs($student)
+        ->get(route('groups.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('groups.data.0.can_update', false));
+});
+
 it('lets a member open a group they belong to', function () {
     $student = userWithRole(UserRole::Student);
     $group = Group::factory()->create();
