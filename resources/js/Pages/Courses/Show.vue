@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
 import Avatar from '@/components/Avatar.vue';
 import UserSearchSelect from '@/components/UserSearchSelect.vue';
+import GroupSearchSelect from '@/components/GroupSearchSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import draggable from 'vuedraggable';
 import { fromNow } from "@/lib/date.js";
@@ -70,6 +71,24 @@ const addStudent = () => {
             preserveScroll: true,
             onSuccess: () => {
                 selected_student_id.value = '';
+            },
+        },
+    );
+};
+
+const selected_group_id = ref('');
+
+const addGroup = () => {
+    if (!selected_group_id.value) {
+        return;
+    }
+    router.post(
+        route('courses.students.storeGroup', props.course.id),
+        { group_id: selected_group_id.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                selected_group_id.value = '';
             },
         },
     );
@@ -375,6 +394,21 @@ const movePage = (index, direction) => {
               <Button :disabled="!selected_student_id" @click="addStudent">
                 <UserPlus class="w-4 h-4" />
                 Add
+              </Button>
+            </div>
+
+            <!-- Add a group's members -->
+            <div v-if="canManageStudents" class="mt-2 flex items-center gap-2">
+              <div class="flex-1">
+                <GroupSearchSelect
+                    v-model="selected_group_id"
+                    :search-url="route('courses.students.assignable-groups', course.id)"
+                    placeholder="Search for a group…"
+                />
+              </div>
+              <Button :disabled="!selected_group_id" @click="addGroup">
+                <Users class="w-4 h-4" />
+                Add group
               </Button>
             </div>
           </CardContent>

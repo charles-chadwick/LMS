@@ -4,6 +4,7 @@ use App\Actions\Courses\AssignStudent;
 use App\Actions\Courses\RemoveStudent;
 use App\Enums\UserRole;
 use App\Models\Course;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
@@ -181,6 +182,64 @@ it('rejects enrolling a user who instructs the course', function () {
 
     $response->assertSessionHasErrors('user_id');
     expect($course->students()->whereKey($dual_role->id)->exists())->toBeFalse();
+});
+
+it('lets a manager bulk-enroll a group as students', function () {
+    [$course] = courseWithManager();
+    $group = Group::factory()->create();
+    $first_member = userWithRole(UserRole::Student);
+    $second_member = userWithRole(UserRole::Student);
+    $group->users()->attach([$first_member->id, $second_member->id], ['is_leader' => false]);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->post(route('courses.students.storeGroup', $course), ['group_id' => $group->id]);
+
+    $response->assertRedirect(route('courses.show', $course));
+    $response->assertSessionHas('success');
+    expect($course->students()->count())->toBe(2);
+});
+
+it('forbids a non-manager from bulk-enrolling a group', function () {
+    [$course] = courseWithManager();
+    $group = Group::factory()->create();
+    $member = userWithRole(UserRole::Student);
+    $group->users()->attach($member, ['is_leader' => false]);
+
+    $response = $this->actingAs(userWithRole(UserRole::Instructor))
+        ->post(route('courses.students.storeGroup', $course), ['group_id' => $group->id]);
+
+    $response->assertForbidden();
+    expect($course->students()->count())->toBe(0);
+});
+
+it('rejects bulk-enrolling a non-existent group', function () {
+    [$course] = courseWithManager();
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->post(route('courses.students.storeGroup', $course), ['group_id' => 99999]);
+
+    $response->assertSessionHasErrors('group_id');
+});
+
+it('searches assignable groups for a manager, filtered by the search term', function () {
+    [$course] = courseWithManager();
+    $match = Group::factory()->create(['name' => 'Searchable Cohort']);
+    Group::factory()->create(['name' => 'Unrelated Team']);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->getJson(route('courses.students.assignable-groups', ['course' => $course, 'search' => 'Searchable']));
+
+    $response->assertOk();
+    $ids = collect($response->json())->pluck('id');
+    expect($ids)->toContain($match->id)->toHaveCount(1);
+});
+
+it('forbids a non-manager from searching assignable groups', function () {
+    [$course] = courseWithManager();
+
+    $this->actingAs(userWithRole(UserRole::Student))
+        ->getJson(route('courses.students.assignable-groups', $course))
+        ->assertForbidden();
 });
 
 /**

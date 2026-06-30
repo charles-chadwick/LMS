@@ -2,10 +2,12 @@
 
 namespace App\Actions\Groups;
 
+use App\Enums\UserRole;
 use App\Models\Group;
 use App\Traits\HasSearchFilter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class ListGroups
@@ -18,7 +20,10 @@ class ListGroups
      */
     public function execute(Request $request): LengthAwarePaginator
     {
+        $user = $request->user();
+
         $query = Group::query()
+            ->visibleTo($user)
             ->select([
                 'id',
                 'type',
@@ -36,13 +41,20 @@ class ListGroups
             'status_param' => 'type',
         ]);
 
+        $is_admin = $user->hasRole(UserRole::Admin);
+        $led_group_ids = $user->hasRole(UserRole::Instructor)
+            ? DB::table('group_users')
+                ->where('user_id', $user->id)
+                ->where('is_leader', true)
+                ->whereNull('deleted_at')
+                ->pluck('group_id')
+            : collect();
+
         return $query->paginate($request->input('perPage', 15))
             ->withQueryString()
-            ->through(function (Group $group) use ($request): Group {
-                $current_user = $request->user();
-
-                $group->can_update = $current_user->can('update', $group);
-                $group->can_delete = $current_user->can('delete', $group);
+            ->through(function (Group $group) use ($is_admin, $led_group_ids): Group {
+                $group->can_update = $is_admin || $led_group_ids->contains($group->id);
+                $group->can_delete = $is_admin;
 
                 return $group;
             });

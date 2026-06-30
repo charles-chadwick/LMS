@@ -9,19 +9,19 @@ use App\Models\User;
 class GroupPolicy
 {
     /**
-     * Only admins may browse groups.
+     * Any authenticated user may browse groups; the visibility scope filters them.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(UserRole::Admin);
+        return true;
     }
 
     /**
-     * Only admins may view a group.
+     * A user may view a group only if it is visible to them.
      */
     public function view(User $user, Group $group): bool
     {
-        return $user->hasRole(UserRole::Admin);
+        return Group::query()->visibleTo($user)->whereKey($group->id)->exists();
     }
 
     /**
@@ -33,11 +33,11 @@ class GroupPolicy
     }
 
     /**
-     * Only admins may update groups.
+     * Admins may update any group; instructors only the ones they lead.
      */
     public function update(User $user, Group $group): bool
     {
-        return $user->hasRole(UserRole::Admin);
+        return $user->hasRole(UserRole::Admin) || $this->leads($user, $group);
     }
 
     /**
@@ -70,5 +70,14 @@ class GroupPolicy
     public function forceDelete(User $user): bool
     {
         return $user->hasRole(UserRole::Admin);
+    }
+
+    /**
+     * Determine whether the user is an instructor who leads the group.
+     */
+    private function leads(User $user, Group $group): bool
+    {
+        return $user->hasRole(UserRole::Instructor)
+            && $group->leaders()->whereKey($user->id)->exists();
     }
 }

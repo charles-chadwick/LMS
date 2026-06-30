@@ -25,8 +25,6 @@ class GroupController extends Controller
      */
     public function index(Request $request, ListGroups $listGroups): Response
     {
-        $this->authorize('viewAny', Group::class);
-
         return Inertia::render('Groups/Index', [
             'groups' => $listGroups->execute($request),
             'filters' => $request->only([
