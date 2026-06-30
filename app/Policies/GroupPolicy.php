@@ -17,11 +17,11 @@ class GroupPolicy
     }
 
     /**
-     * Only admins may view a group.
+     * A user may view a group only if it is visible to them.
      */
     public function view(User $user, Group $group): bool
     {
-        return $user->hasRole(UserRole::Admin);
+        return Group::query()->visibleTo($user)->whereKey($group->id)->exists();
     }
 
     /**

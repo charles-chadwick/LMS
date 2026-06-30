@@ -69,3 +69,42 @@ it('excludes a group with soft-deleted membership from the index', function () {
         ->get(route('groups.index'))
         ->assertInertia(fn (Assert $page) => $page->has('groups.data', 0));
 });
+
+it('lets a member open a group they belong to', function () {
+    $student = userWithRole(UserRole::Student);
+    $group = Group::factory()->create();
+    $group->users()->attach($student, ['is_leader' => false]);
+
+    $this->actingAs($student)
+        ->get(route('groups.show', $group))
+        ->assertOk();
+});
+
+it('forbids a non-member from opening a group', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $group = Group::factory()->create();
+
+    $this->actingAs($instructor)
+        ->get(route('groups.show', $group))
+        ->assertForbidden();
+});
+
+it('lets an admin open any group', function () {
+    $admin = userWithRole(UserRole::Admin);
+    $group = Group::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('groups.show', $group))
+        ->assertOk();
+});
+
+it('forbids a member from opening a group whose membership was soft deleted', function () {
+    $student = userWithRole(UserRole::Student);
+    $group = Group::factory()->create();
+    $group->users()->attach($student, ['is_leader' => false]);
+    DB::table('group_users')->where('user_id', $student->id)->update(['deleted_at' => now()]);
+
+    $this->actingAs($student)
+        ->get(route('groups.show', $group))
+        ->assertForbidden();
+});
