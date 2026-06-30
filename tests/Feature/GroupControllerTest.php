@@ -182,11 +182,11 @@ it('permanently deletes a group', function () {
     expect(Group::withTrashed()->find($group->id))->toBeNull();
 });
 
-it('forbids non-admins from managing groups', function () {
+it('forbids non-admins from creating groups', function () {
     $instructor = userWithRole(UserRole::Instructor);
 
     $this->actingAs($instructor)
-        ->get(route('groups.index'))
+        ->get(route('groups.create'))
         ->assertForbidden();
 });
 

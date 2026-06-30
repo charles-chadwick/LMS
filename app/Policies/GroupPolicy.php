@@ -9,11 +9,11 @@ use App\Models\User;
 class GroupPolicy
 {
     /**
-     * Only admins may browse groups.
+     * Any authenticated user may browse groups; the visibility scope filters them.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(UserRole::Admin);
+        return true;
     }
 
     /**

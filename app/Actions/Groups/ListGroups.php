@@ -19,6 +19,7 @@ class ListGroups
     public function execute(Request $request): LengthAwarePaginator
     {
         $query = Group::query()
+            ->visibleTo($request->user())
             ->select([
                 'id',
                 'type',
