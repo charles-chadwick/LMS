@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\DiscussionStatus;
+use App\Enums\DiscussionType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Discussion extends Base
 {
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -18,7 +23,6 @@ class Discussion extends Base
         'type',
         'title',
         'status',
-        'notes'
     ];
 
     /**
@@ -28,12 +32,12 @@ class Discussion extends Base
      */
     protected $casts = [
         'on' => 'integer',
+        'type' => DiscussionType::class,
+        'status' => DiscussionStatus::class,
     ];
 
     /**
      * Get the parent discussable model.
-     *
-     * @return MorphTo
      */
     public function discussable(): MorphTo
     {
@@ -42,11 +46,17 @@ class Discussion extends Base
 
     /**
      * Get the posts for the discussion.
-     *
-     * @return HasMany
      */
     public function posts(): HasMany
     {
         return $this->hasMany(DiscussionPost::class)->orderBy('created_at');
+    }
+
+    /**
+     * Determine whether the discussion is open to new posts.
+     */
+    public function isOpen(): bool
+    {
+        return $this->status === DiscussionStatus::Open;
     }
 }

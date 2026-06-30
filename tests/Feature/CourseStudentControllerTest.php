@@ -5,7 +5,6 @@ use App\Actions\Courses\RemoveStudent;
 use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\Group;
-use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
 uses(LazilyRefreshDatabase::class);
@@ -241,17 +240,3 @@ it('forbids a non-manager from searching assignable groups', function () {
         ->getJson(route('courses.students.assignable-groups', $course))
         ->assertForbidden();
 });
-
-/**
- * Create a course that already has one assigned instructor.
- *
- * @return array{0: Course, 1: User}
- */
-function courseWithManager(): array
-{
-    $course = Course::factory()->create();
-    $instructor = userWithRole(UserRole::Instructor);
-    $course->instructors()->attach($instructor, ['is_instructor' => true]);
-
-    return [$course, $instructor];
-}

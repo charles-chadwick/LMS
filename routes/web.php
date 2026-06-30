@@ -5,6 +5,8 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseInstructorController;
 use App\Http\Controllers\CourseLearnController;
 use App\Http\Controllers\CourseStudentController;
+use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\DiscussionPostController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\PageController;
@@ -84,6 +86,42 @@ Route::middleware('auth')->prefix('courses')->name('courses.')->group(function (
 
     // Completion certificate
     Route::get('/{course}/certificate', [CourseCertificateController::class, 'show'])->name('certificate');
+
+    // Course discussions
+    Route::name('discussions.')->scopeBindings()->group(function () {
+        // List a course's discussions
+        Route::get('/{course}/discussions', [DiscussionController::class, 'index'])->name('index');
+
+        // Show the form for starting a discussion
+        Route::get('/{course}/discussions/create', [DiscussionController::class, 'create'])->name('create');
+
+        // Store a new discussion
+        Route::post('/{course}/discussions', [DiscussionController::class, 'store'])->name('store');
+
+        // Show a single discussion thread
+        Route::get('/{course}/discussions/{discussion}', [DiscussionController::class, 'show'])->name('show');
+
+        // Show the form for editing a discussion
+        Route::get('/{course}/discussions/{discussion}/edit', [DiscussionController::class, 'edit'])->name('edit');
+
+        // Update a discussion
+        Route::put('/{course}/discussions/{discussion}', [DiscussionController::class, 'update'])->name('update');
+
+        // Open or close a discussion
+        Route::patch('/{course}/discussions/{discussion}/status', [DiscussionController::class, 'setStatus'])->name('setStatus');
+
+        // Delete a discussion
+        Route::delete('/{course}/discussions/{discussion}', [DiscussionController::class, 'destroy'])->name('destroy');
+
+        // Add a reply to a discussion
+        Route::post('/{course}/discussions/{discussion}/posts', [DiscussionPostController::class, 'store'])->name('posts.store');
+
+        // Update a reply
+        Route::put('/{course}/discussions/{discussion}/posts/{post}', [DiscussionPostController::class, 'update'])->name('posts.update');
+
+        // Delete a reply
+        Route::delete('/{course}/discussions/{discussion}/posts/{post}', [DiscussionPostController::class, 'destroy'])->name('posts.destroy');
+    });
 });
 
 // User Routes

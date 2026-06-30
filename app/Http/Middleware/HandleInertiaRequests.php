@@ -42,6 +42,7 @@ class HandleInertiaRequests extends Middleware
                     'view_users' => $request->user()?->can('viewAny', User::class) ?? false,
                     'create_groups' => $request->user()?->can('create', Group::class) ?? false,
                     'view_groups' => $request->user()?->can('viewAny', Group::class) ?? false,
+                    'manage_groups' => $request->user()?->canManageGroups() ?? false,
                 ],
             ],
             'flash' => [

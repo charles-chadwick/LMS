@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -46,6 +47,31 @@ function userWithRole(UserRole $role): User
     $user->assignRole($role);
 
     return $user;
+}
+
+/**
+ * Create a course together with an assigned instructor who manages it.
+ *
+ * @return array{0: Course, 1: User}
+ */
+function courseWithManager(): array
+{
+    $course = Course::factory()->create();
+    $instructor = userWithRole(UserRole::Instructor);
+    $course->instructors()->attach($instructor, ['is_instructor' => true]);
+
+    return [$course, $instructor];
+}
+
+/**
+ * Create a freshly enrolled student in the given course.
+ */
+function enrolledStudent(Course $course): User
+{
+    $student = userWithRole(UserRole::Student);
+    $course->students()->attach($student, ['is_instructor' => false]);
+
+    return $student;
 }
 
 expect()->extend('toBeOne', function () {

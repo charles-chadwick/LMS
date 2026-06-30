@@ -105,4 +105,24 @@ class Course extends Base
                 ->whereNull('courses_users.deleted_at');
         });
     }
+
+    /**
+     * Determine whether the user may manage the course — an admin, or an
+     * instructor assigned to teach it.
+     */
+    public function isManagedBy(User $user): bool
+    {
+        return $user->hasRole(UserRole::Admin)
+            || ($user->hasRole(UserRole::Instructor) && $this->instructors()->whereKey($user->id)->exists());
+    }
+
+    /**
+     * Determine whether the user takes part in the course — a manager or an
+     * enrolled student.
+     */
+    public function hasParticipant(User $user): bool
+    {
+        return $this->isManagedBy($user)
+            || $this->students()->whereKey($user->id)->exists();
+    }
 }

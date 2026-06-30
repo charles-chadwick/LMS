@@ -160,6 +160,16 @@ class User extends Base implements AuthenticatableContract, AuthorizableContract
     }
 
     /**
+     * Get the groups the user belongs to.
+     */
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'group_users')
+            ->withPivot('is_leader')
+            ->withTimestamps();
+    }
+
+    /**
      * Get discussions created by the user.
      */
     public function discussions(): HasMany
@@ -173,5 +183,24 @@ class User extends Base implements AuthenticatableContract, AuthorizableContract
     public function discussionPosts(): HasMany
     {
         return $this->hasMany(DiscussionPost::class, 'created_by_id');
+    }
+
+    /**
+     * Determine whether the user leads at least one group.
+     */
+    public function leadsAnyGroup(): bool
+    {
+        return $this->groups()
+            ->wherePivot('is_leader', true)
+            ->exists();
+    }
+
+    /**
+     * Determine whether the user may manage groups — an admin, or an
+     * instructor who leads at least one group.
+     */
+    public function canManageGroups(): bool
+    {
+        return $this->hasRole(UserRole::Admin) || $this->leadsAnyGroup();
     }
 }

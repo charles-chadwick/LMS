@@ -4,6 +4,7 @@ import { router, Head } from '@inertiajs/vue3';
 import {
     ArrowLeft, Pencil, Trash2, Tag as TagIcon, Users, User, FileText,
     Plus, ChevronUp, ChevronDown, Info, AlignLeft, X, UserPlus, GripVertical,
+    MessagesSquare,
 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -122,6 +123,10 @@ const goToIndex = () => {
     router.visit(route('courses.index'));
 };
 
+const goToDiscussions = () => {
+    router.visit(route('courses.discussions.index', props.course.id));
+};
+
 const addPage = () => {
     router.visit(route('pages.create', { course_id: props.course.id }));
 };
@@ -184,10 +189,14 @@ const movePage = (index, direction) => {
     <div class="min-h-screen bg-darker-50 py-8 px-4 sm:px-6 lg:px-8">
 
       <!-- Back Button -->
-      <div class="mb-6">
+      <div class="mb-6 flex items-center justify-between">
         <Button variant="outline" @click="goToIndex">
           <ArrowLeft class="w-4 h-4" />
           Back to Courses
+        </Button>
+        <Button variant="outline" @click="goToDiscussions">
+          <MessagesSquare class="w-4 h-4" />
+          Discussions
         </Button>
       </div>
 

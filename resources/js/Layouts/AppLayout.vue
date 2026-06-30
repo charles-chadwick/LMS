@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Menu, Home, BookOpen, Users, UsersRound, MessagesSquare, User, LogOut } from 'lucide-vue-next';
+import { Menu, Home, BookOpen, Users, UsersRound, User, LogOut } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
@@ -20,13 +20,19 @@ const userDisplayName = computed(() => {
 const allNavigationItems = [
     { label: 'Dashboard', icon: Home, route: 'dashboard' },
     { label: 'Courses', icon: BookOpen, route: 'courses.index' },
-    { label: 'Users', icon: Users, route: 'users.index' },
-    { label: 'Groups', icon: UsersRound, route: 'groups.index' },
-    { label: 'Discussions', icon: MessagesSquare, route: 'discussions.index' },
+    { label: 'Users', icon: Users, route: 'users.index', gate: 'view_users' },
+    { label: 'Groups', icon: UsersRound, route: 'groups.index', gate: 'manage_groups' },
 ];
+
+const authCan = computed(() => page.props.auth?.can ?? {});
 
 const navigationItems = computed(() => {
     return allNavigationItems.filter((item) => {
+        // Hide items the user is not authorized to access.
+        if (item.gate && !authCan.value[item.gate]) {
+            return false;
+        }
+
         try {
             route(item.route);
             return true;
