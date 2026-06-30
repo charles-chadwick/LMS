@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\GroupType;
 use App\Enums\UserRole;
 use App\Models\Group;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -106,5 +107,69 @@ it('forbids a member from opening a group whose membership was soft deleted', fu
 
     $this->actingAs($student)
         ->get(route('groups.show', $group))
+        ->assertForbidden();
+});
+
+it('lets an instructor who leads a group update it', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $group = Group::factory()->general()->create();
+    $group->users()->attach($instructor, ['is_leader' => true]);
+
+    $this->actingAs($instructor)
+        ->put(route('groups.update', $group), [
+            'type' => GroupType::General->value,
+            'name' => 'Renamed By Leader',
+            'description' => 'Edited by the group leader.',
+        ])
+        ->assertRedirect(route('groups.show', $group));
+
+    expect($group->fresh()->name)->toBe('Renamed By Leader');
+});
+
+it('lets an instructor who leads a group manage its members', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $group = Group::factory()->general()->create();
+    $group->users()->attach($instructor, ['is_leader' => true]);
+
+    $this->actingAs($instructor)
+        ->getJson(route('groups.members.assignable', $group))
+        ->assertOk();
+});
+
+it('forbids a non-leader member from updating the group', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $group = Group::factory()->general()->create();
+    $group->users()->attach($instructor, ['is_leader' => false]);
+
+    $this->actingAs($instructor)
+        ->put(route('groups.update', $group), [
+            'type' => GroupType::General->value,
+            'name' => 'Should Not Save',
+            'description' => 'Not allowed.',
+        ])
+        ->assertForbidden();
+});
+
+it('forbids a student member from updating the group even when a leader', function () {
+    $student = userWithRole(UserRole::Student);
+    $group = Group::factory()->general()->create();
+    $group->users()->attach($student, ['is_leader' => true]);
+
+    $this->actingAs($student)
+        ->put(route('groups.update', $group), [
+            'type' => GroupType::General->value,
+            'name' => 'Should Not Save',
+            'description' => 'Not allowed.',
+        ])
+        ->assertForbidden();
+});
+
+it('forbids a group leader from deleting the group', function () {
+    $instructor = userWithRole(UserRole::Instructor);
+    $group = Group::factory()->create();
+    $group->users()->attach($instructor, ['is_leader' => true]);
+
+    $this->actingAs($instructor)
+        ->delete(route('groups.destroy', $group))
         ->assertForbidden();
 });
