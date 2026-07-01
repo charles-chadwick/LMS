@@ -10,6 +10,7 @@ import {
     ComboboxList,
     ComboboxTrigger,
 } from '@/components/ui/combobox';
+import { useDebouncedSearch } from '@/composables/useDebouncedSearch';
 
 const props = defineProps({
     searchUrl: {
@@ -23,46 +24,13 @@ const props = defineProps({
 });
 
 const selectedValue = defineModel({ type: [Number, String, null], default: null });
-
-const groups = ref([]);
 const selectedGroup = ref(null);
-const loading = ref(false);
+const { results: groups, loading, search } = useDebouncedSearch(props.searchUrl);
 
-const fetchGroups = async (term) => {
-    loading.value = true;
-
-    try {
-        const url = new URL(props.searchUrl, window.location.origin);
-
-        if (term) {
-            url.searchParams.set('search', term);
-        }
-
-        const response = await fetch(url, {
-            headers: { Accept: 'application/json' },
-            credentials: 'same-origin',
-        });
-
-        groups.value = response.ok ? await response.json() : [];
-    } catch (error) {
-        groups.value = [];
-    } finally {
-        loading.value = false;
-    }
-};
-
-let debounceTimer = null;
-
-const onSearchInput = (event) => {
-    const term = event.target.value;
-
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => fetchGroups(term), 250);
-};
-
+const onSearchInput = (event) => search(event.target.value);
 const onOpenChange = (isOpen) => {
     if (isOpen) {
-        fetchGroups('');
+        search('');
     }
 };
 

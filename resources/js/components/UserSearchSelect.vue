@@ -11,6 +11,7 @@ import {
     ComboboxTrigger,
 } from '@/components/ui/combobox';
 import Avatar from '@/components/Avatar.vue';
+import { useDebouncedSearch } from '@/composables/useDebouncedSearch';
 
 const props = defineProps({
     searchUrl: {
@@ -29,49 +30,15 @@ const props = defineProps({
 });
 
 const selectedValue = defineModel({ type: [Number, String, null], default: null });
-
-const users = ref([]);
 const selectedUser = ref(null);
-const loading = ref(false);
+const { results: users, loading, search } = useDebouncedSearch(props.searchUrl);
 
 const fullName = (user) => `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim();
-
-const fetchUsers = async (term) => {
-    loading.value = true;
-
-    try {
-        const url = new URL(props.searchUrl, window.location.origin);
-
-        if (term) {
-            url.searchParams.set('search', term);
-        }
-
-        const response = await fetch(url, {
-            headers: { Accept: 'application/json' },
-            credentials: 'same-origin',
-        });
-
-        users.value = response.ok ? await response.json() : [];
-    } catch (error) {
-        users.value = [];
-    } finally {
-        loading.value = false;
-    }
-};
-
-let debounceTimer = null;
-
-const onSearchInput = (event) => {
-    const term = event.target.value;
-
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => fetchUsers(term), 250);
-};
-
+const onSearchInput = (event) => search(event.target.value);
 const onOpenChange = (isOpen) => {
     if (isOpen) {
         // Refetch each time the menu opens so excluded members stay current.
-        fetchUsers('');
+        search('');
     }
 };
 
