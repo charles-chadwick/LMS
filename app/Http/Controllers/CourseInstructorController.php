@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Courses\AssignInstructor;
+use App\Actions\Courses\AssignInstructors;
 use App\Actions\Courses\ListAssignableInstructors;
 use App\Actions\Courses\RemoveInstructor;
 use App\Http\Requests\StoreCourseInstructorRequest;
@@ -27,17 +27,17 @@ class CourseInstructorController extends Controller
     }
 
     /**
-     * Assign an instructor to the course.
+     * Assign one or more instructors to the course.
      */
-    public function store(StoreCourseInstructorRequest $request, Course $course, AssignInstructor $assignInstructor): RedirectResponse
+    public function store(StoreCourseInstructorRequest $request, Course $course, AssignInstructors $assignInstructors): RedirectResponse
     {
-        $user = User::findOrFail($request->validated()['user_id']);
+        $users = User::findMany($request->validated()['user_ids']);
 
-        $assignInstructor->execute($course, $user);
+        $count = $assignInstructors->execute($course, $users);
 
         return redirect()
             ->route('courses.show', $course)
-            ->with('success', 'Instructor added successfully.');
+            ->with('success', "{$count} instructor(s) added successfully.");
     }
 
     /**

@@ -24,24 +24,16 @@ class StoreCourseInstructorRequest extends FormRequest
      */
     public function rules(): array
     {
-        $course = $this->route('course');
-
         return [
-            'user_id' => [
-                'required',
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => [
                 'integer',
                 'exists:users,id',
-                function (string $attribute, mixed $value, callable $fail) use ($course): void {
+                function (string $attribute, mixed $value, callable $fail): void {
                     $user = User::find($value);
 
-                    if ($user === null) {
-                        return;
-                    }
-
-                    if (! $user->hasAnyRole([UserRole::Admin, UserRole::Instructor])) {
-                        $fail('The selected user must be an instructor or admin.');
-                    } elseif ($course->instructors()->whereKey($value)->exists()) {
-                        $fail('This user is already an instructor of the course.');
+                    if ($user !== null && ! $user->hasAnyRole([UserRole::Admin, UserRole::Instructor])) {
+                        $fail('Each selected user must be an instructor or admin.');
                     }
                 },
             ],

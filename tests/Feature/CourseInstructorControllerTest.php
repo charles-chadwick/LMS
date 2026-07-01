@@ -1,12 +1,14 @@
 <?php
 
 use App\Actions\Courses\AssignInstructor;
+use App\Actions\Courses\AssignInstructors;
 use App\Actions\Courses\RemoveInstructor;
 use App\Enums\CourseStatus;
 use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 uses(LazilyRefreshDatabase::class);
@@ -74,6 +76,23 @@ it('refuses to remove the last instructor', function () {
     expect($course->instructors()->count())->toBe(1);
 });
 
+it('bulk-attaches instructors, skipping already-assigned and restoring soft-deleted', function () {
+    [$course, $existing] = courseWithInstructor();
+    $fresh = userWithRole(UserRole::Instructor);
+    $restorable = userWithRole(UserRole::Instructor);
+    $course->instructors()->attach($restorable, ['is_instructor' => true]);
+    $course->instructors()->detach($restorable); // soft-deletes the pivot
+
+    $count = app(AssignInstructors::class)->execute(
+        $course, new Collection([$fresh, $restorable, $existing])
+    );
+
+    expect($count)->toBe(2)
+        ->and($course->instructors()->whereKey($fresh->id)->exists())->toBeTrue()
+        ->and($course->instructors()->whereKey($restorable->id)->exists())->toBeTrue()
+        ->and($course->instructors()->count())->toBe(3);
+});
+
 /**
  * Create a course that already has a single assigned instructor.
  *
@@ -94,7 +113,7 @@ it('lets an admin add an instructor', function () {
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.instructors.store', $course), [
-            'user_id' => $new_instructor->id,
+            'user_ids' => [$new_instructor->id],
         ]);
 
     $response->assertRedirect(route('courses.show', $course));
@@ -108,7 +127,7 @@ it('lets an assigned instructor add another instructor', function () {
 
     $response = $this->actingAs($instructor)
         ->post(route('courses.instructors.store', $course), [
-            'user_id' => $new_instructor->id,
+            'user_ids' => [$new_instructor->id],
         ]);
 
     $response->assertRedirect(route('courses.show', $course));
@@ -122,7 +141,7 @@ it('forbids a non-manager from adding an instructor', function () {
 
     $response = $this->actingAs($outsider)
         ->post(route('courses.instructors.store', $course), [
-            'user_id' => $eligible_target->id,
+            'user_ids' => [$eligible_target->id],
         ]);
 
     $response->assertForbidden();
@@ -135,7 +154,7 @@ it('forbids a student from adding an instructor', function () {
 
     $response = $this->actingAs(userWithRole(UserRole::Student))
         ->post(route('courses.instructors.store', $course), [
-            'user_id' => $eligible_target->id,
+            'user_ids' => [$eligible_target->id],
         ]);
 
     $response->assertForbidden();
@@ -147,23 +166,48 @@ it('rejects adding a user without an instructor or admin role', function () {
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.instructors.store', $course), [
-            'user_id' => $student->id,
+            'user_ids' => [$student->id],
         ]);
 
-    $response->assertSessionHasErrors('user_id');
+    $response->assertSessionHasErrors('user_ids.*');
     expect($course->instructors()->whereKey($student->id)->exists())->toBeFalse();
 });
 
-it('rejects adding an already-assigned instructor', function () {
+it('skips an already-assigned instructor without erroring', function () {
     [$course, $instructor] = courseWithInstructor();
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
         ->post(route('courses.instructors.store', $course), [
-            'user_id' => $instructor->id,
+            'user_ids' => [$instructor->id],
         ]);
 
-    $response->assertSessionHasErrors('user_id');
+    $response->assertRedirect(route('courses.show', $course));
+    $response->assertSessionDoesntHaveErrors();
     expect($course->instructors()->count())->toBe(1);
+});
+
+it('lets an admin add multiple instructors at once', function () {
+    [$course] = courseWithInstructor();
+    $a = userWithRole(UserRole::Instructor);
+    $b = userWithRole(UserRole::Instructor);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->post(route('courses.instructors.store', $course), ['user_ids' => [$a->id, $b->id]]);
+
+    $response->assertRedirect(route('courses.show', $course));
+    expect($course->instructors()->count())->toBe(3);
+});
+
+it('rejects the whole batch when any id is not an eligible role', function () {
+    [$course] = courseWithInstructor();
+    $ok = userWithRole(UserRole::Instructor);
+    $bad = userWithRole(UserRole::Student);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->post(route('courses.instructors.store', $course), ['user_ids' => [$ok->id, $bad->id]]);
+
+    $response->assertSessionHasErrors('user_ids.*');
+    expect($course->instructors()->whereKey($ok->id)->exists())->toBeFalse();
 });
 
 it('lets an admin remove a non-last instructor', function () {
