@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Groups\AssignMember;
+use App\Actions\Groups\AssignMembers;
 use App\Actions\Groups\ListAssignableUsers;
 use App\Actions\Groups\RemoveMember;
 use App\Actions\Groups\UpdateMember;
@@ -31,17 +31,15 @@ class GroupMemberController extends Controller
     /**
      * Add a member to the group.
      */
-    public function store(StoreGroupMemberRequest $request, Group $group, AssignMember $assignMember): RedirectResponse
+    public function store(StoreGroupMemberRequest $request, Group $group, AssignMembers $assignMembers): RedirectResponse
     {
-        $validated = $request->validated();
+        $users = User::findMany($request->validated()['user_ids']);
 
-        $user = User::findOrFail($validated['user_id']);
-
-        $assignMember->execute($group, $user, $validated['is_leader'] ?? false);
+        $count = $assignMembers->execute($group, $users);
 
         return redirect()
             ->route('groups.show', $group)
-            ->with('success', 'Member added successfully.');
+            ->with('success', "{$count} member(s) added successfully.");
     }
 
     /**

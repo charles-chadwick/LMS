@@ -1,9 +1,11 @@
 <?php
 
+use App\Actions\Groups\AssignMembers;
 use App\Enums\GroupType;
 use App\Enums\UserRole;
 use App\Models\Group;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
@@ -190,18 +192,50 @@ it('forbids non-admins from creating groups', function () {
         ->assertForbidden();
 });
 
+it('bulk-adds group members as non-leaders, skipping existing and restoring soft-deleted', function () {
+    $group = Group::factory()->create();
+    $fresh = userWithRole(UserRole::Student);
+    $restorable = userWithRole(UserRole::Instructor);
+    $group->users()->attach($restorable, ['is_leader' => false]);
+    $group->users()->detach($restorable);
+    $already = userWithRole(UserRole::Student);
+    $group->users()->attach($already, ['is_leader' => false]);
+
+    $count = app(AssignMembers::class)->execute(
+        $group, new Collection([$fresh, $restorable, $already])
+    );
+
+    expect($count)->toBe(2)
+        ->and($group->users()->count())->toBe(3)
+        ->and($group->leaders()->count())->toBe(0);
+});
+
 it('adds an instructor or student as a member', function () {
     $group = Group::factory()->general()->create();
     $student = userWithRole(UserRole::Student);
 
     $response = $this->post(route('groups.members.store', $group), [
-        'user_id' => $student->id,
-        'is_leader' => true,
+        'user_ids' => [$student->id],
     ]);
 
     $response->assertRedirect(route('groups.show', $group));
     expect($group->users()->whereKey($student->id)->exists())->toBeTrue()
-        ->and($group->leaders()->whereKey($student->id)->exists())->toBeTrue();
+        ->and($group->leaders()->whereKey($student->id)->exists())->toBeFalse();
+});
+
+it('bulk-adds multiple members at once', function () {
+    $group = Group::factory()->general()->create();
+    $student = userWithRole(UserRole::Student);
+    $instructor = userWithRole(UserRole::Instructor);
+
+    $response = $this->post(route('groups.members.store', $group), [
+        'user_ids' => [$student->id, $instructor->id],
+    ]);
+
+    $response->assertRedirect(route('groups.show', $group));
+    $response->assertSessionHas('success');
+    expect($group->users()->whereKey($student->id)->exists())->toBeTrue()
+        ->and($group->users()->whereKey($instructor->id)->exists())->toBeTrue();
 });
 
 it('rejects a member who is neither an instructor nor a student', function () {
@@ -209,23 +243,11 @@ it('rejects a member who is neither an instructor nor a student', function () {
     $admin = userWithRole(UserRole::Admin);
 
     $response = $this->post(route('groups.members.store', $group), [
-        'user_id' => $admin->id,
+        'user_ids' => [$admin->id],
     ]);
 
-    $response->assertSessionHasErrors('user_id');
+    $response->assertSessionHasErrors('user_ids.0');
     expect($group->users()->count())->toBe(0);
-});
-
-it('rejects a duplicate member', function () {
-    $group = Group::factory()->general()->create();
-    $student = userWithRole(UserRole::Student);
-    $group->users()->attach($student, ['is_leader' => false]);
-
-    $response = $this->post(route('groups.members.store', $group), [
-        'user_id' => $student->id,
-    ]);
-
-    $response->assertSessionHasErrors('user_id');
 });
 
 it('toggles a member leadership status', function () {

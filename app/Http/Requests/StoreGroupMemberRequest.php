@@ -24,28 +24,19 @@ class StoreGroupMemberRequest extends FormRequest
      */
     public function rules(): array
     {
-        $group = $this->route('group');
-
         return [
-            'user_id' => [
-                'required',
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => [
                 'integer',
                 'exists:users,id',
-                function (string $attribute, mixed $value, callable $fail) use ($group): void {
+                function (string $attribute, mixed $value, callable $fail): void {
                     $user = User::find($value);
 
-                    if ($user === null) {
-                        return;
-                    }
-
-                    if (! $user->hasAnyRole([UserRole::Instructor, UserRole::Student])) {
-                        $fail('The selected user must be an instructor or student.');
-                    } elseif ($group->users()->whereKey($value)->exists()) {
-                        $fail('This user is already a member of the group.');
+                    if ($user !== null && ! $user->hasAnyRole([UserRole::Instructor, UserRole::Student])) {
+                        $fail('Each selected user must be an instructor or student.');
                     }
                 },
             ],
-            'is_leader' => ['sometimes', 'boolean'],
         ];
     }
 }
