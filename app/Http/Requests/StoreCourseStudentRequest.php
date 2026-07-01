@@ -24,26 +24,16 @@ class StoreCourseStudentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $course = $this->route('course');
-
         return [
-            'user_id' => [
-                'required',
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => [
                 'integer',
                 'exists:users,id',
-                function (string $attribute, mixed $value, callable $fail) use ($course): void {
+                function (string $attribute, mixed $value, callable $fail): void {
                     $user = User::find($value);
 
-                    if ($user === null) {
-                        return;
-                    }
-
-                    if (! $user->hasRole(UserRole::Student)) {
-                        $fail('The selected user must be a student.');
-                    } elseif ($course->students()->whereKey($value)->exists()) {
-                        $fail('This user is already a student of the course.');
-                    } elseif ($course->instructors()->whereKey($value)->exists()) {
-                        $fail('This user is an instructor of the course.');
+                    if ($user !== null && ! $user->hasRole(UserRole::Student)) {
+                        $fail('Each selected user must be a student.');
                     }
                 },
             ],

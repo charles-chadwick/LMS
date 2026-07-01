@@ -1,11 +1,13 @@
 <?php
 
 use App\Actions\Courses\AssignStudent;
+use App\Actions\Courses\AssignStudents;
 use App\Actions\Courses\RemoveStudent;
 use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\Group;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Collection;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -53,12 +55,29 @@ it('removes the last student without error', function () {
     expect($course->students()->count())->toBe(0);
 });
 
+it('bulk-enrolls students, skipping existing and restoring soft-deleted', function () {
+    $course = Course::factory()->create();
+    $fresh = userWithRole(UserRole::Student);
+    $restorable = userWithRole(UserRole::Student);
+    $course->students()->attach($restorable, ['is_instructor' => false]);
+    $course->students()->detach($restorable);
+    $already = userWithRole(UserRole::Student);
+    $course->students()->attach($already, ['is_instructor' => false]);
+
+    $count = app(AssignStudents::class)->execute(
+        $course, new Collection([$fresh, $restorable, $already])
+    );
+
+    expect($count)->toBe(2)
+        ->and($course->students()->count())->toBe(3);
+});
+
 it('lets an admin enroll a student', function () {
     [$course] = courseWithManager();
     $student = userWithRole(UserRole::Student);
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
-        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+        ->post(route('courses.students.store', $course), ['user_ids' => [$student->id]]);
 
     $response->assertRedirect(route('courses.show', $course));
     $response->assertSessionHas('success');
@@ -70,7 +89,7 @@ it('lets an assigned instructor enroll a student', function () {
     $student = userWithRole(UserRole::Student);
 
     $response = $this->actingAs($instructor)
-        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+        ->post(route('courses.students.store', $course), ['user_ids' => [$student->id]]);
 
     $response->assertRedirect(route('courses.show', $course));
     expect($course->students()->count())->toBe(1);
@@ -81,7 +100,7 @@ it('forbids a non-manager from enrolling a student', function () {
     $student = userWithRole(UserRole::Student);
 
     $response = $this->actingAs(userWithRole(UserRole::Instructor))
-        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+        ->post(route('courses.students.store', $course), ['user_ids' => [$student->id]]);
 
     $response->assertForbidden();
     expect($course->students()->whereKey($student->id)->exists())->toBeFalse();
@@ -92,22 +111,47 @@ it('rejects enrolling a user without the Student role', function () {
     $non_student = userWithRole(UserRole::Instructor);
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
-        ->post(route('courses.students.store', $course), ['user_id' => $non_student->id]);
+        ->post(route('courses.students.store', $course), ['user_ids' => [$non_student->id]]);
 
-    $response->assertSessionHasErrors('user_id');
+    $response->assertSessionHasErrors('user_ids.*');
     expect($course->students()->whereKey($non_student->id)->exists())->toBeFalse();
 });
 
-it('rejects enrolling an already-enrolled student', function () {
+it('skips an already-enrolled student without erroring', function () {
     [$course] = courseWithManager();
     $student = userWithRole(UserRole::Student);
     $course->students()->attach($student, ['is_instructor' => false]);
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
-        ->post(route('courses.students.store', $course), ['user_id' => $student->id]);
+        ->post(route('courses.students.store', $course), ['user_ids' => [$student->id]]);
 
-    $response->assertSessionHasErrors('user_id');
+    $response->assertRedirect(route('courses.show', $course));
+    $response->assertSessionDoesntHaveErrors();
     expect($course->students()->count())->toBe(1);
+});
+
+it('lets an admin enroll multiple students at once', function () {
+    [$course] = courseWithManager();
+    $a = userWithRole(UserRole::Student);
+    $b = userWithRole(UserRole::Student);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->post(route('courses.students.store', $course), ['user_ids' => [$a->id, $b->id]]);
+
+    $response->assertRedirect(route('courses.show', $course));
+    expect($course->students()->count())->toBe(2);
+});
+
+it('rejects the whole batch when any id is not a student', function () {
+    [$course] = courseWithManager();
+    $ok = userWithRole(UserRole::Student);
+    $bad = userWithRole(UserRole::Instructor);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->post(route('courses.students.store', $course), ['user_ids' => [$ok->id, $bad->id]]);
+
+    $response->assertSessionHasErrors('user_ids.*');
+    expect($course->students()->whereKey($ok->id)->exists())->toBeFalse();
 });
 
 it('lets an admin remove a student', function () {
@@ -170,16 +214,17 @@ it('forbids a non-manager from searching assignable students', function () {
         ->assertForbidden();
 });
 
-it('rejects enrolling a user who instructs the course', function () {
+it('skips a user who already instructs the course without adding them as a student', function () {
     [$course] = courseWithManager();
     $dual_role = userWithRole(UserRole::Student);
     $dual_role->assignRole(UserRole::Instructor);
     $course->instructors()->attach($dual_role, ['is_instructor' => true]);
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
-        ->post(route('courses.students.store', $course), ['user_id' => $dual_role->id]);
+        ->post(route('courses.students.store', $course), ['user_ids' => [$dual_role->id]]);
 
-    $response->assertSessionHasErrors('user_id');
+    $response->assertRedirect(route('courses.show', $course));
+    $response->assertSessionDoesntHaveErrors();
     expect($course->students()->whereKey($dual_role->id)->exists())->toBeFalse();
 });
 

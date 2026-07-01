@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Courses\AssignStudent;
+use App\Actions\Courses\AssignStudents;
 use App\Actions\Courses\EnrollGroupMembers;
 use App\Actions\Courses\ListAssignableGroups;
 use App\Actions\Courses\ListAssignableStudents;
@@ -31,17 +31,17 @@ class CourseStudentController extends Controller
     }
 
     /**
-     * Enroll a student in the course.
+     * Enroll one or more students in the course.
      */
-    public function store(StoreCourseStudentRequest $request, Course $course, AssignStudent $assignStudent): RedirectResponse
+    public function store(StoreCourseStudentRequest $request, Course $course, AssignStudents $assignStudents): RedirectResponse
     {
-        $user = User::findOrFail($request->validated()['user_id']);
+        $users = User::findMany($request->validated()['user_ids']);
 
-        $assignStudent->execute($course, $user);
+        $count = $assignStudents->execute($course, $users);
 
         return redirect()
             ->route('courses.show', $course)
-            ->with('success', 'Student added successfully.');
+            ->with('success', "{$count} student(s) added successfully.");
     }
 
     /**
