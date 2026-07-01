@@ -26,6 +26,7 @@ class ListCourses
                 'title',
                 'code',
             ])
+            ->with('media')
             ->withCount([
                 'pages',
                 'students',

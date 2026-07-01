@@ -181,12 +181,24 @@ const createCourse = () => {
                     <span class="font-mono text-sm text-darker-700 font-semibold">{{ course.code }}</span>
                   </td>
                   <td class="py-4 px-4">
-                    <Link
-                        :href="route('courses.show', course.id)"
-                        class="text-primary-600 hover:text-primary-800 font-medium hover:underline"
-                    >
-                      {{ course.title }}
-                    </Link>
+                    <div class="flex items-center gap-3">
+                      <img
+                          v-if="course.cover"
+                          :src="course.cover.thumb"
+                          :alt="`${course.title} cover image`"
+                          class="h-9 w-16 shrink-0 rounded object-cover"
+                      />
+                      <div
+                          v-else
+                          class="h-9 w-16 shrink-0 rounded bg-darker-100"
+                      />
+                      <Link
+                          :href="route('courses.show', course.id)"
+                          class="text-primary-600 hover:text-primary-800 font-medium hover:underline"
+                      >
+                        {{ course.title }}
+                      </Link>
+                    </div>
                   </td>
                   <td class="py-4 px-4">
                     <Badge :variant="getStatusVariant(course.status)">{{ course.status }}</Badge>

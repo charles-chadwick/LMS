@@ -47,7 +47,7 @@ class LoadCoursePlayer
         $student = $course->students()->whereKey($user->id)->first();
 
         return [
-            'course' => $course->only('id', 'title', 'code'),
+            'course' => $course->only('id', 'title', 'code', 'cover'),
             'pages' => $items,
             'current_page' => $current?->only('id', 'title', 'content'),
             'progress' => [

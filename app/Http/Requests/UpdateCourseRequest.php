@@ -39,6 +39,16 @@ class UpdateCourseRequest extends FormRequest
                 'nullable',
                 'string',
             ],
+            'cover' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,png,webp',
+                'max:5120',
+            ],
+            'remove_cover' => [
+                'nullable',
+                'boolean',
+            ],
         ];
     }
 
@@ -53,6 +63,7 @@ class UpdateCourseRequest extends FormRequest
             'status' => 'course status',
             'title' => 'course title',
             'code' => 'course code',
+            'cover' => 'course cover image',
         ];
     }
 

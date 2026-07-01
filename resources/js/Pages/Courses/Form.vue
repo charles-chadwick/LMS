@@ -1,6 +1,6 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -33,11 +33,48 @@ const form = useForm({
     title: props.course?.title || '',
     code: props.course?.code || '',
     description: props.course?.description || '',
+    cover: null,
+    remove_cover: false,
 });
+
+const cover_input = ref(null);
+const new_cover_preview = ref(null);
+const existing_cover_url = props.course?.cover?.full || null;
+
+const displayed_cover = computed(() => {
+    if (new_cover_preview.value) {
+        return new_cover_preview.value;
+    }
+
+    if (existing_cover_url && !form.remove_cover) {
+        return existing_cover_url;
+    }
+
+    return null;
+});
+
+const onCoverChange = (event) => {
+    const file = event.target.files[0] || null;
+    form.cover = file;
+    form.remove_cover = false;
+    new_cover_preview.value = file ? URL.createObjectURL(file) : null;
+};
+
+const removeCover = () => {
+    form.cover = null;
+    new_cover_preview.value = null;
+    form.remove_cover = Boolean(existing_cover_url);
+
+    if (cover_input.value) {
+        cover_input.value.value = '';
+    }
+};
 
 const submit = () => {
     if (is_editing.value) {
-        form.put(route('courses.update', props.course.id), { preserveScroll: true });
+        form
+            .transform((data) => ({ ...data, _method: 'put' }))
+            .post(route('courses.update', props.course.id), { preserveScroll: true });
     } else {
         form.post(route('courses.store'), { preserveScroll: true });
     }
@@ -139,6 +176,57 @@ const cancel = () => {
               <QuillEditor v-model="form.description" placeholder="Describe this course..." />
               <small v-if="form.errors.description" class="text-red-600 mt-1 block">
                 {{ form.errors.description }}
+              </small>
+            </div>
+
+            <!-- Cover Image Field -->
+            <div class="flex flex-col">
+              <Label for="cover" class="mb-2">
+                Cover Image <span class="text-darker-400 font-normal">(optional)</span>
+              </Label>
+
+              <div class="flex items-start gap-4">
+                <div
+                    class="flex h-32 w-56 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-darker-200 bg-darker-100"
+                >
+                  <img
+                      v-if="displayed_cover"
+                      :src="displayed_cover"
+                      alt="Course cover preview"
+                      class="h-full w-full object-cover"
+                  />
+                  <span v-else class="px-2 text-center text-xs text-darker-400">
+                    No cover image
+                  </span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <input
+                      id="cover"
+                      ref="cover_input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      class="block text-sm text-darker-600 file:mr-3 file:rounded-md file:border-0 file:bg-darker-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-darker-700"
+                      @change="onCoverChange"
+                  />
+                  <Button
+                      v-if="displayed_cover"
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      class="w-fit"
+                      @click="removeCover"
+                  >
+                    Remove
+                  </Button>
+                  <small class="text-darker-500">
+                    JPG, PNG, or WEBP up to 5 MB. Recommended 16:9.
+                  </small>
+                </div>
+              </div>
+
+              <small v-if="form.errors.cover" class="text-red-600 mt-1 block">
+                {{ form.errors.cover }}
               </small>
             </div>
 

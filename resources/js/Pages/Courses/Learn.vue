@@ -53,6 +53,12 @@ const currentIsCompleted = computed(() =>
         <!-- Sidebar -->
         <Card class="shadow-md h-fit">
           <CardContent class="pt-6">
+            <img
+                v-if="course.cover"
+                :src="course.cover.thumb"
+                :alt="`${course.title} cover image`"
+                class="mb-4 h-28 w-full rounded-lg object-cover"
+            />
             <h2 class="text-lg font-bold text-darker-900">{{ course.title }}</h2>
             <p class="font-mono text-sm text-darker-500 mb-4">{{ course.code }}</p>
 

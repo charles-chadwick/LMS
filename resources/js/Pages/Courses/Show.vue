@@ -201,7 +201,13 @@ const movePage = (index, direction) => {
       </div>
 
       <!-- Course Header -->
-      <Card class="mb-6 shadow-lg">
+      <Card class="mb-6 shadow-lg overflow-hidden">
+        <img
+            v-if="course.cover"
+            :src="course.cover.full"
+            :alt="`${course.title} cover image`"
+            class="h-48 w-full object-cover sm:h-64"
+        />
         <CardContent class="pt-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">

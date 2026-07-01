@@ -56,7 +56,11 @@ class CourseController extends Controller
     {
         $this->authorize('create', Course::class);
 
-        $course = $createCourse->execute($request->validated(), $request->user());
+        $course = $createCourse->execute(
+            $request->safe()->except('cover'),
+            $request->user(),
+            $request->file('cover'),
+        );
 
         return redirect()
             ->route('courses.show', $course)
@@ -100,7 +104,12 @@ class CourseController extends Controller
     {
         $this->authorize('update', $course);
 
-        $updateCourse->execute($course, $request->validated());
+        $updateCourse->execute(
+            $course,
+            $request->safe()->except(['cover', 'remove_cover']),
+            $request->file('cover'),
+            $request->boolean('remove_cover'),
+        );
 
         return redirect()
             ->route('courses.show', $course)

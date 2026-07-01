@@ -9,10 +9,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Course extends Base
+class Course extends Base implements HasMedia
 {
     use HasFactory;
+    use InteractsWithMedia;
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'cover',
+    ];
 
     /**
      * The attributes that are mass-assignable.
@@ -34,6 +48,47 @@ class Course extends Base
         'code',
         'description',
     ];
+
+    /**
+     * Register the course's media collections.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('cover')
+            ->singleFile();
+    }
+
+    /**
+     * Register the conversions generated for the course's cover image.
+     *
+     * The original upload is kept full sized while a 16:9 thumbnail
+     * conversion is generated synchronously so it is available immediately.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->fit(Fit::Crop, 800, 450)
+            ->nonQueued();
+    }
+
+    /**
+     * Get the course's cover image URLs, or null when no cover has been uploaded.
+     *
+     * @return array{thumb: string, full: string}|null
+     */
+    public function getCoverAttribute(): ?array
+    {
+        $thumb = $this->getFirstMediaUrl('cover', 'thumb');
+
+        if ($thumb === '') {
+            return null;
+        }
+
+        return [
+            'thumb' => $thumb,
+            'full' => $this->getFirstMediaUrl('cover'),
+        ];
+    }
 
     /**
      * Get the pages for the course.

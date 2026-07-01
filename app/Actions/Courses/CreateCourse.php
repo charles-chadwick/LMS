@@ -5,6 +5,7 @@ namespace App\Actions\Courses;
 use App\Models\Course;
 use App\Models\User;
 use App\Traits\SanitizesHtml;
+use Illuminate\Http\UploadedFile;
 
 class CreateCourse
 {
@@ -15,7 +16,7 @@ class CreateCourse
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function execute(array $attributes, User $creator): Course
+    public function execute(array $attributes, User $creator, ?UploadedFile $cover = null): Course
     {
         if (array_key_exists('description', $attributes)) {
             $attributes['description'] = $this->sanitizeHtml($attributes['description']);
@@ -24,6 +25,10 @@ class CreateCourse
         $course = Course::create($attributes);
 
         $course->instructors()->attach($creator, ['is_instructor' => true]);
+
+        if ($cover instanceof UploadedFile) {
+            $course->addMedia($cover)->toMediaCollection('cover');
+        }
 
         return $course;
     }

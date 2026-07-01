@@ -6,6 +6,8 @@ use App\Models\Course;
 use App\Models\Page;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(LazilyRefreshDatabase::class);
@@ -112,6 +114,84 @@ it('sanitizes dangerous markup from the course description', function () {
 
     expect($description)->toContain('Safe')
         ->and($description)->not->toContain('<script');
+});
+
+it('stores a cover image when creating a course', function () {
+    Storage::fake('public');
+
+    $this->post(route('courses.store'), [
+        'status' => CourseStatus::Draft->value,
+        'title' => 'Course With Cover',
+        'code' => 'COVER-101',
+        'cover' => UploadedFile::fake()->image('cover.jpg', 800, 450),
+    ]);
+
+    $course = Course::firstWhere('code', 'COVER-101');
+
+    expect($course->getFirstMedia('cover'))->not->toBeNull()
+        ->and($course->cover)->toBeArray()
+        ->and($course->cover['thumb'])->toContain('thumb')
+        ->and($course->cover['full'])->not->toContain('conversions');
+});
+
+it('replaces the cover image when updating a course', function () {
+    Storage::fake('public');
+
+    $course = Course::factory()->withCover()->create();
+    $original_media_id = $course->getFirstMedia('cover')->id;
+
+    $this->put(route('courses.update', $course), [
+        'status' => $course->status->value,
+        'title' => $course->title,
+        'code' => $course->code,
+        'cover' => UploadedFile::fake()->image('new-cover.jpg', 800, 450),
+    ]);
+
+    $course->refresh();
+
+    expect($course->getMedia('cover'))->toHaveCount(1)
+        ->and($course->getFirstMedia('cover')->id)->not->toBe($original_media_id);
+});
+
+it('removes the cover image when remove_cover is set', function () {
+    Storage::fake('public');
+
+    $course = Course::factory()->withCover()->create();
+
+    $this->put(route('courses.update', $course), [
+        'status' => $course->status->value,
+        'title' => $course->title,
+        'code' => $course->code,
+        'remove_cover' => true,
+    ]);
+
+    expect($course->fresh()->cover)->toBeNull();
+});
+
+it('rejects a cover that is not an image', function () {
+    Storage::fake('public');
+
+    $response = $this->post(route('courses.store'), [
+        'status' => CourseStatus::Draft->value,
+        'title' => 'Bad Cover Course',
+        'code' => 'BADCOVER-101',
+        'cover' => UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'),
+    ]);
+
+    $response->assertSessionHasErrors('cover');
+    expect(Course::firstWhere('code', 'BADCOVER-101'))->toBeNull();
+});
+
+it('exposes the cover image url on the course show payload', function () {
+    Storage::fake('public');
+
+    $course = Course::factory()->withCover()->create();
+
+    $this->get(route('courses.show', $course))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('course.cover.thumb', $course->cover['thumb'])
+            ->where('course.cover.full', $course->cover['full'])
+        );
 });
 
 it('validates required fields when creating a course', function () {

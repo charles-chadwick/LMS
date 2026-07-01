@@ -12,6 +12,7 @@ class LoadCourseDetails
     public function execute(Course $course): Course
     {
         $course->load([
+            'media',
             'pages' => function ($query) {
                 $query->select('id', 'course_id', 'order', 'status', 'title');
             },
