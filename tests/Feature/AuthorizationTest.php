@@ -133,7 +133,7 @@ it('forbids an instructor from deleting a page in another course', function () {
 });
 
 it('exposes management abilities to students as false on the index', function () {
-    $course = Course::factory()->create();
+    $course = Course::factory()->create(['status' => CourseStatus::Published]);
     $student = userWithRole(UserRole::Student);
     $course->students()->attach($student, ['is_instructor' => false]);
     $this->actingAs($student);

@@ -56,6 +56,8 @@ class PageController extends Controller
      */
     public function show(Page $page, LoadPageDetails $loadPageDetails): Response
     {
+        $this->authorize('view', $page);
+
         return Inertia::render('Pages/Show', [
             'page' => $loadPageDetails->execute($page),
             'can' => [

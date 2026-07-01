@@ -143,9 +143,9 @@ class Course extends Base implements HasMedia
     /**
      * Scope the query to courses visible to the given user.
      *
-     * Admins see every course. Any other user sees only the courses they are
-     * assigned to — a non-deleted `courses_users` row, whether as student or
-     * instructor.
+     * Admins see every course. Instructors see the courses they teach at any
+     * status. Students see only published courses they are enrolled in. In all
+     * cases the `courses_users` row must not be soft-deleted.
      */
     public function scopeVisibleTo(Builder $query, User $user): void
     {
@@ -157,7 +157,13 @@ class Course extends Base implements HasMedia
             $subquery->from('courses_users')
                 ->whereColumn('courses_users.course_id', 'courses.id')
                 ->where('courses_users.user_id', $user->id)
-                ->whereNull('courses_users.deleted_at');
+                ->whereNull('courses_users.deleted_at')
+                ->where(function (\Illuminate\Database\Query\Builder $subquery): void {
+                    // Instructors see their courses at any status; students only
+                    // see courses that have been published.
+                    $subquery->where('courses_users.is_instructor', true)
+                        ->orWhere('courses.status', CourseStatus::Published->value);
+                });
         });
     }
 

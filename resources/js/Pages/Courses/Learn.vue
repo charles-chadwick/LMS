@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Check, Lock, Award, CheckCircle2 } from 'lucide-vue-next';
+import { ArrowLeft, ArrowRight, Check, Lock, Award, CheckCircle2 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -33,6 +33,20 @@ const completeAndContinue = () => {
 
 const currentIsCompleted = computed(() =>
     props.pages.find((page) => page.id === currentPageId.value)?.is_completed ?? false,
+);
+
+const currentIndex = computed(() =>
+    props.pages.findIndex((page) => page.id === currentPageId.value),
+);
+
+const previousPage = computed(() =>
+    currentIndex.value > 0 ? props.pages[currentIndex.value - 1] : null,
+);
+
+const nextPage = computed(() =>
+    currentIndex.value >= 0 && currentIndex.value < props.pages.length - 1
+        ? props.pages[currentIndex.value + 1]
+        : null,
 );
 </script>
 
@@ -114,10 +128,39 @@ const currentIsCompleted = computed(() =>
                 <h1 class="text-3xl font-bold text-darker-900 mb-6">{{ current_page.title }}</h1>
                 <div class="prose max-w-none" v-html="current_page.content"></div>
 
-                <div class="mt-8 pt-6 border-t border-darker-200 flex justify-end">
-                  <Button class="px-6" @click="completeAndContinue">
+                <div class="mt-8 pt-6 border-t border-darker-200 flex items-center justify-between gap-3">
+                  <Button
+                      variant="outline"
+                      :disabled="!previousPage"
+                      @click="goToPage(previousPage)"
+                  >
+                    <ArrowLeft class="w-4 h-4" />
+                    Previous
+                  </Button>
+
+                  <Button
+                      v-if="!currentIsCompleted"
+                      class="px-6"
+                      @click="completeAndContinue"
+                  >
                     <Check class="w-4 h-4" />
-                    {{ currentIsCompleted ? 'Continue' : 'Mark complete & continue' }}
+                    Mark complete &amp; continue
+                  </Button>
+                  <Button
+                      v-else-if="nextPage"
+                      class="px-6"
+                      @click="goToPage(nextPage)"
+                  >
+                    Next
+                    <ArrowRight class="w-4 h-4" />
+                  </Button>
+                  <Button
+                      v-else
+                      variant="outline"
+                      @click="router.visit(route('courses.index'))"
+                  >
+                    <Check class="w-4 h-4" />
+                    Finish
                   </Button>
                 </div>
               </CardContent>

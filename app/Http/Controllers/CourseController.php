@@ -75,9 +75,10 @@ class CourseController extends Controller
         $this->authorize('view', $course);
 
         return Inertia::render('Courses/Show', [
-            'course' => $loadCourseDetails->execute($course),
+            'course' => $loadCourseDetails->execute($course, $request->user()),
             'can' => [
                 'update' => $request->user()->can('update', $course),
+                'take' => $request->user()->can('take', $course),
                 'manage_instructors' => $request->user()->can('manageInstructors', $course),
                 'manage_students' => $request->user()->can('manageStudents', $course),
             ],

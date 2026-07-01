@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\CourseStatus;
 use App\Enums\UserRole;
 use App\Models\Page;
 use App\Models\User;
@@ -17,11 +18,14 @@ class PagePolicy
     }
 
     /**
-     * Any authenticated user may view a page.
+     * A page is viewable when it is published, or when the user manages its
+     * course (an admin, or an assigned instructor).
      */
     public function view(User $user, Page $page): bool
     {
-        return true;
+        return $page->status === CourseStatus::Published
+            || $user->hasRole(UserRole::Admin)
+            || $this->teaches($user, $page);
     }
 
     /**

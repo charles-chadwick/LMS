@@ -10,7 +10,7 @@ uses(LazilyRefreshDatabase::class);
 
 it('shows a student only the courses they are assigned to', function () {
     $student = userWithRole(UserRole::Student);
-    $assigned = Course::factory()->create();
+    $assigned = Course::factory()->published()->create();
     $assigned->students()->attach($student, ['is_instructor' => false]);
     Course::factory()->create(); // unassigned course
 
@@ -60,7 +60,7 @@ it('excludes courses whose enrollment was soft deleted', function () {
 
 it('lets a student open a course they are assigned to', function () {
     $student = userWithRole(UserRole::Student);
-    $course = Course::factory()->create();
+    $course = Course::factory()->published()->create();
     $course->students()->attach($student, ['is_instructor' => false]);
 
     $this->actingAs($student)

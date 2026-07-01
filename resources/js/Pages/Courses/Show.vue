@@ -4,13 +4,14 @@ import { router, Head } from '@inertiajs/vue3';
 import {
     ArrowLeft, Pencil, Trash2, Tag as TagIcon, Users, User, FileText,
     Plus, ChevronUp, ChevronDown, Info, AlignLeft, X, UserPlus, GripVertical,
-    MessagesSquare,
+    MessagesSquare, BookOpen,
 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
 import Avatar from '@/components/Avatar.vue';
+import ScrollableList from '@/components/ScrollableList.vue';
 import UserSearchSelect from '@/components/UserSearchSelect.vue';
 import GroupSearchSelect from '@/components/GroupSearchSelect.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -24,11 +25,15 @@ const props = defineProps({
     },
     can: {
         type: Object,
-        default: () => ({ update: false, manage_instructors: false, manage_students: false }),
+        default: () => ({ update: false, take: false, manage_instructors: false, manage_students: false }),
     },
 });
 
 const canManage = computed(() => props.can.update);
+
+// Students take the course through the learner player (with page navigation
+// and progress tracking); managers open pages in the read-only editor view.
+const takesCourse = computed(() => props.can.take && !props.can.update);
 
 const canManageInstructors = computed(() => props.can.manage_instructors);
 
@@ -132,7 +137,15 @@ const addPage = () => {
 };
 
 const viewPage = (page) => {
+    if (takesCourse.value) {
+        router.visit(route('courses.learn.page', [props.course.id, page.id]));
+        return;
+    }
     router.visit(route('pages.show', page.id));
+};
+
+const startLearning = () => {
+    router.visit(route('courses.learn', props.course.id));
 };
 
 const editPage = (page) => {
@@ -194,10 +207,16 @@ const movePage = (index, direction) => {
           <ArrowLeft class="w-4 h-4" />
           Back to Courses
         </Button>
-        <Button variant="outline" @click="goToDiscussions">
-          <MessagesSquare class="w-4 h-4" />
-          Discussions
-        </Button>
+        <div class="flex items-center gap-3">
+          <Button v-if="takesCourse" @click="startLearning">
+            <BookOpen class="w-4 h-4" />
+            Start learning
+          </Button>
+          <Button variant="outline" @click="goToDiscussions">
+            <MessagesSquare class="w-4 h-4" />
+            Discussions
+          </Button>
+        </div>
       </div>
 
       <!-- Course Header -->
@@ -301,10 +320,11 @@ const movePage = (index, direction) => {
             <CardTitle class="flex items-center gap-2 text-lg">
               <User class="w-5 h-5 text-primary-600" />
               Instructors
+              <Badge variant="secondary">{{ course.instructors_count }}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div v-if="course.instructors && course.instructors.length > 0" class="space-y-3 max-h-96 overflow-y-auto">
+            <ScrollableList v-if="course.instructors && course.instructors.length > 0" hint="Scroll for more instructors">
               <div
                   v-for="instructor in course.instructors"
                   :key="instructor.id"
@@ -331,7 +351,7 @@ const movePage = (index, direction) => {
                   <X class="w-4 h-4" />
                 </Button>
               </div>
-            </div>
+            </ScrollableList>
             <div v-else class="text-center py-8 text-darker-500">
               <Users class="w-10 h-10 mb-3 mx-auto" />
               <p>No instructors assigned yet</p>
@@ -361,10 +381,11 @@ const movePage = (index, direction) => {
             <CardTitle class="flex items-center gap-2 text-lg">
               <Users class="w-5 h-5 text-accent-600" />
               Students
+              <Badge variant="secondary">{{ course.students_count }}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div v-if="course.students && course.students.length > 0" class="space-y-3 max-h-96 overflow-y-auto">
+            <ScrollableList v-if="course.students && course.students.length > 0" hint="Scroll for more students">
               <div
                   v-for="student in course.students"
                   :key="student.id"
@@ -390,7 +411,7 @@ const movePage = (index, direction) => {
                   <X class="w-4 h-4" />
                 </Button>
               </div>
-            </div>
+            </ScrollableList>
             <div v-else class="text-center py-8 text-darker-500">
               <Users class="w-10 h-10 mb-3 mx-auto" />
               <p>No students enrolled yet</p>
