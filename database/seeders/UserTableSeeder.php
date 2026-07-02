@@ -126,9 +126,12 @@ class UserTableSeeder extends Seeder
             ? "{$first_name}.{$last_name}"
             : "{$first_name}.{$last_name}.{$character_id}";
 
-        return str($local_part.'@example.com')
+        return str($local_part)
             ->lower()
-            ->remove([' ', '\''])
+            ->replaceMatches('/[^a-z0-9!#$%&\'*+\/=?^_`{|}~.-]/', '')
+            ->replaceMatches('/\.+/', '.')
+            ->trim('.')
+            ->append('@example.com')
             ->value();
     }
 
