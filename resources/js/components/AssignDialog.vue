@@ -17,6 +17,7 @@ const props = defineProps({
     storeUrl: { type: String, required: true },
     variant: { type: String, default: 'primary' },
     triggerLabel: { type: String, default: 'Add' },
+    triggerSize: { type: String, default: 'default' },
 });
 
 const open = ref(false);
@@ -59,7 +60,7 @@ const submit = () => {
 <template>
   <Dialog :open="open" @update:open="onOpenChange">
     <DialogTrigger as-child>
-      <Button :variant="variant === 'accent' ? 'default' : 'default'">
+      <Button :size="triggerSize">
         <UserPlus class="w-4 h-4" />
         {{ triggerLabel }}
       </Button>

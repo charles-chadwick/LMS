@@ -3,17 +3,16 @@ import { computed, ref, watch } from 'vue';
 import { router, Head } from '@inertiajs/vue3';
 import {
     ArrowLeft, Pencil, Trash2, Tag as TagIcon, Users, User, FileText,
-    Plus, ChevronUp, ChevronDown, Info, AlignLeft, X, UserPlus, GripVertical,
+    Plus, ChevronUp, ChevronDown, Info, AlignLeft, X, GripVertical,
     MessagesSquare, BookOpen,
 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ConfirmAction from '@/components/ConfirmAction.vue';
-import Avatar from '@/components/Avatar.vue';
-import ScrollableList from '@/components/ScrollableList.vue';
-import UserSearchSelect from '@/components/UserSearchSelect.vue';
-import GroupSearchSelect from '@/components/GroupSearchSelect.vue';
+import RosterList from '@/components/RosterList.vue';
+import AssignDialog from '@/components/AssignDialog.vue';
+import AssignGroupsDialog from '@/components/AssignGroupsDialog.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import draggable from 'vuedraggable';
 import { fromNow } from "@/lib/date.js";
@@ -37,24 +36,6 @@ const takesCourse = computed(() => props.can.take && !props.can.update);
 
 const canManageInstructors = computed(() => props.can.manage_instructors);
 
-const selected_instructor_id = ref('');
-
-const addInstructor = () => {
-    if (!selected_instructor_id.value) {
-        return;
-    }
-    router.post(
-        route('courses.instructors.store', props.course.id),
-        { user_id: selected_instructor_id.value },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                selected_instructor_id.value = '';
-            },
-        },
-    );
-};
-
 const removeInstructor = (instructor) => {
     router.delete(
         route('courses.instructors.destroy', { course: props.course.id, user: instructor.id }),
@@ -63,42 +44,6 @@ const removeInstructor = (instructor) => {
 };
 
 const canManageStudents = computed(() => props.can.manage_students);
-
-const selected_student_id = ref('');
-
-const addStudent = () => {
-    if (!selected_student_id.value) {
-        return;
-    }
-    router.post(
-        route('courses.students.store', props.course.id),
-        { user_id: selected_student_id.value },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                selected_student_id.value = '';
-            },
-        },
-    );
-};
-
-const selected_group_id = ref('');
-
-const addGroup = () => {
-    if (!selected_group_id.value) {
-        return;
-    }
-    router.post(
-        route('courses.students.storeGroup', props.course.id),
-        { group_id: selected_group_id.value },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                selected_group_id.value = '';
-            },
-        },
-    );
-};
 
 const removeStudent = (student) => {
     router.delete(
@@ -317,89 +262,93 @@ const movePage = (index, direction) => {
         <!-- Instructors -->
         <Card class="shadow-md">
           <CardHeader>
-            <CardTitle class="flex items-center gap-2 text-lg">
-              <User class="w-5 h-5 text-primary-600" />
-              Instructors
-              <Badge variant="secondary">{{ course.instructors_count }}</Badge>
-            </CardTitle>
+            <div class="flex items-center justify-between gap-3">
+              <CardTitle class="flex items-center gap-2 text-lg">
+                <User class="w-5 h-5 text-primary-600" />
+                Instructors
+                <Badge variant="secondary">{{ course.instructors_count }}</Badge>
+              </CardTitle>
+              <AssignDialog
+                  v-if="canManageInstructors"
+                  title="Add instructors"
+                  description="Search for instructors to assign to this course. Select one or more, then add them."
+                  :search-url="route('courses.instructors.assignable', course.id)"
+                  :store-url="route('courses.instructors.store', course.id)"
+                  trigger-label="Add instructors"
+                  trigger-size="sm"
+                  variant="primary"
+              />
+            </div>
           </CardHeader>
           <CardContent>
-            <ScrollableList v-if="course.instructors && course.instructors.length > 0" hint="Scroll for more instructors">
-              <div
-                  v-for="instructor in course.instructors"
-                  :key="instructor.id"
-                  class="flex items-center justify-between gap-3 p-3 bg-darker-50 rounded-lg"
-              >
-                <div class="flex items-center gap-3">
-                  <Avatar :user="instructor" variant="primary" />
-                  <div>
-                    <p class="font-semibold text-darker-900">
-                      {{ instructor.first_name }} {{ instructor.last_name }}
-                    </p>
-                    <p class="text-sm text-darker-600">{{ instructor.email }}</p>
-                  </div>
-                </div>
+            <RosterList
+                :search-url="route('courses.instructors.index', course.id)"
+                :initial-items="course.instructors ?? []"
+                :total-count="course.instructors_count"
+                :can-search="canManage"
+                variant="primary"
+                search-placeholder="Search instructors…"
+                scroll-hint="Scroll for more instructors"
+                empty-text="No instructors assigned yet"
+            >
+              <template #actions="{ item: instructor }">
                 <Button
                     v-if="canManageInstructors"
                     variant="ghost"
                     size="icon-sm"
                     class="text-destructive hover:bg-destructive/10 disabled:opacity-30"
-                    :disabled="course.instructors.length === 1"
+                    :disabled="course.instructors_count === 1"
                     :aria-label="`Remove ${instructor.first_name} ${instructor.last_name}`"
                     @click="removeInstructor(instructor)"
                 >
                   <X class="w-4 h-4" />
                 </Button>
-              </div>
-            </ScrollableList>
-            <div v-else class="text-center py-8 text-darker-500">
-              <Users class="w-10 h-10 mb-3 mx-auto" />
-              <p>No instructors assigned yet</p>
-            </div>
-
-            <!-- Add instructor -->
-            <div v-if="canManageInstructors" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
-              <div class="flex-1">
-                <UserSearchSelect
-                    v-model="selected_instructor_id"
-                    :search-url="route('courses.instructors.assignable', course.id)"
-                    variant="primary"
-                    placeholder="Search for an instructor…"
-                />
-              </div>
-              <Button :disabled="!selected_instructor_id" @click="addInstructor">
-                <UserPlus class="w-4 h-4" />
-                Add
-              </Button>
-            </div>
+              </template>
+            </RosterList>
           </CardContent>
         </Card>
 
         <!-- Students -->
         <Card class="shadow-md">
           <CardHeader>
-            <CardTitle class="flex items-center gap-2 text-lg">
-              <Users class="w-5 h-5 text-accent-600" />
-              Students
-              <Badge variant="secondary">{{ course.students_count }}</Badge>
-            </CardTitle>
+            <div class="flex items-center justify-between gap-3">
+              <CardTitle class="flex items-center gap-2 text-lg">
+                <Users class="w-5 h-5 text-accent-600" />
+                Students
+                <Badge variant="secondary">{{ course.students_count }}</Badge>
+              </CardTitle>
+              <div v-if="canManageStudents" class="flex flex-wrap items-center justify-end gap-2">
+                <AssignDialog
+                    title="Add students"
+                    description="Search for students to enrol in this course. Select one or more, then add them."
+                    :search-url="route('courses.students.assignable', course.id)"
+                    :store-url="route('courses.students.store', course.id)"
+                    trigger-label="Add students"
+                    trigger-size="sm"
+                    variant="accent"
+                />
+                <AssignGroupsDialog
+                    title="Enrol a group"
+                    :search-url="route('courses.students.assignable-groups', course.id)"
+                    :store-url="route('courses.students.storeGroup', course.id)"
+                    trigger-label="Add a group"
+                    trigger-size="sm"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <ScrollableList v-if="course.students && course.students.length > 0" hint="Scroll for more students">
-              <div
-                  v-for="student in course.students"
-                  :key="student.id"
-                  class="flex items-center justify-between gap-3 p-3 bg-darker-50 rounded-lg"
-              >
-                <div class="flex items-center gap-3">
-                  <Avatar :user="student" variant="accent" />
-                  <div>
-                    <p class="font-semibold text-darker-900">
-                      {{ student.first_name }} {{ student.last_name }}
-                    </p>
-                    <p class="text-sm text-darker-600">{{ student.email }}</p>
-                  </div>
-                </div>
+            <RosterList
+                :search-url="route('courses.students.index', course.id)"
+                :initial-items="course.students ?? []"
+                :total-count="course.students_count"
+                :can-search="canManage"
+                variant="accent"
+                search-placeholder="Search students…"
+                scroll-hint="Scroll for more students"
+                empty-text="No students enrolled yet"
+            >
+              <template #actions="{ item: student }">
                 <Button
                     v-if="canManageStudents"
                     variant="ghost"
@@ -410,43 +359,9 @@ const movePage = (index, direction) => {
                 >
                   <X class="w-4 h-4" />
                 </Button>
-              </div>
-            </ScrollableList>
-            <div v-else class="text-center py-8 text-darker-500">
-              <Users class="w-10 h-10 mb-3 mx-auto" />
-              <p>No students enrolled yet</p>
-            </div>
+              </template>
+            </RosterList>
 
-            <!-- Add student -->
-            <div v-if="canManageStudents" class="mt-4 pt-4 border-t border-darker-200 flex items-center gap-2">
-              <div class="flex-1">
-                <UserSearchSelect
-                    v-model="selected_student_id"
-                    :search-url="route('courses.students.assignable', course.id)"
-                    variant="accent"
-                    placeholder="Search for a student…"
-                />
-              </div>
-              <Button :disabled="!selected_student_id" @click="addStudent">
-                <UserPlus class="w-4 h-4" />
-                Add
-              </Button>
-            </div>
-
-            <!-- Add a group's members -->
-            <div v-if="canManageStudents" class="mt-2 flex items-center gap-2">
-              <div class="flex-1">
-                <GroupSearchSelect
-                    v-model="selected_group_id"
-                    :search-url="route('courses.students.assignable-groups', course.id)"
-                    placeholder="Search for a group…"
-                />
-              </div>
-              <Button :disabled="!selected_group_id" @click="addGroup">
-                <Users class="w-4 h-4" />
-                Add group
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>

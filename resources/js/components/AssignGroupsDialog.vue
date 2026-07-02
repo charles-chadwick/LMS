@@ -14,6 +14,7 @@ const props = defineProps({
     searchUrl: { type: String, required: true },
     storeUrl: { type: String, required: true },
     triggerLabel: { type: String, default: 'Add a group' },
+    triggerSize: { type: String, default: 'default' },
 });
 
 const open = ref(false);
@@ -47,7 +48,7 @@ const submit = () => {
 <template>
   <Dialog :open="open" @update:open="onOpenChange">
     <DialogTrigger as-child>
-      <Button variant="outline">
+      <Button variant="outline" :size="triggerSize">
         <Users class="w-4 h-4" />
         {{ triggerLabel }}
       </Button>
