@@ -236,6 +236,20 @@ it('displays a course with loaded relationships', function () {
     );
 });
 
+it('loads only the first page of the student roster with the full count', function () {
+    $course = Course::factory()->create();
+    $instructor = userWithRole(UserRole::Instructor);
+    $course->instructors()->attach($instructor, ['is_instructor' => true]);
+    $students = collect(range(1, 30))->map(fn () => userWithRole(UserRole::Student));
+    $students->each(fn ($student) => $course->students()->attach($student, ['is_instructor' => false]));
+
+    $this->actingAs($instructor)
+        ->get(route('courses.show', $course))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('course.students', 25)
+            ->where('course.students_count', 30));
+});
+
 it('updates a course', function () {
     $course = Course::factory()->create(['title' => 'Old Title']);
 

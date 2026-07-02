@@ -99,6 +99,19 @@ it('shows a group with its members', function () {
     );
 });
 
+it('loads only the first page of the group member roster with the full count', function () {
+    $group = Group::factory()->general()->create();
+    $members = collect(range(1, 30))->map(fn () => userWithRole(UserRole::Student));
+    $members->each(fn ($member) => $group->users()->attach($member, ['is_leader' => false]));
+
+    $response = $this->get(route('groups.show', $group));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->has('group.users', 25)
+        ->where('group.users_count', 30));
+});
+
 it('paginates and searches the group member roster, exposing the is_leader pivot', function () {
     $group = Group::factory()->general()->create();
     $leader = userWithRole(UserRole::Student);
