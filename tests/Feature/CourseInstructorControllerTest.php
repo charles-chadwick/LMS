@@ -107,6 +107,27 @@ function courseWithInstructor(): array
     return [$course, $instructor];
 }
 
+it('paginates and searches the instructor roster for a manager', function () {
+    [$course, $assigned] = courseWithInstructor();
+    $match = userWithRole(UserRole::Instructor);
+    $match->update(['first_name' => 'Rosterable', 'last_name' => 'Person']);
+    $course->instructors()->attach($match, ['is_instructor' => true]);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->getJson(route('courses.instructors.index', ['course' => $course, 'search' => 'Rosterable']));
+
+    $response->assertOk();
+    $ids = collect($response->json('data'))->pluck('id');
+    expect($ids)->toContain($match->id)->not->toContain($assigned->id);
+});
+
+it('forbids a non-manager from listing the instructor roster', function () {
+    [$course] = courseWithInstructor();
+    $this->actingAs(userWithRole(UserRole::Student))
+        ->getJson(route('courses.instructors.index', $course))
+        ->assertForbidden();
+});
+
 it('lets an admin add an instructor', function () {
     [$course] = courseWithInstructor();
     $new_instructor = userWithRole(UserRole::Instructor);

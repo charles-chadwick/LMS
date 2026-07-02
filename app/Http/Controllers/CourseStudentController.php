@@ -7,6 +7,8 @@ use App\Actions\Courses\EnrollGroups;
 use App\Actions\Courses\ListAssignableGroups;
 use App\Actions\Courses\ListAssignableStudents;
 use App\Actions\Courses\RemoveStudent;
+use App\Actions\Courses\SearchCourseStudents;
+use App\Http\Requests\IndexCourseRosterRequest;
 use App\Http\Requests\StoreCourseGroupStudentsRequest;
 use App\Http\Requests\StoreCourseStudentRequest;
 use App\Models\Course;
@@ -27,6 +29,16 @@ class CourseStudentController extends Controller
 
         return response()->json(
             $listAssignableStudents->execute($course, $request->string('search')->toString() ?: null)
+        );
+    }
+
+    /**
+     * Paginate and search the course's enrolled student roster.
+     */
+    public function index(IndexCourseRosterRequest $request, Course $course, SearchCourseStudents $searchCourseStudents): JsonResponse
+    {
+        return response()->json(
+            $searchCourseStudents->execute($course, $request->string('search')->toString() ?: null)
         );
     }
 

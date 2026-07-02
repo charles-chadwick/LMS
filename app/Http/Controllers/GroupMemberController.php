@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Actions\Groups\AssignMembers;
 use App\Actions\Groups\ListAssignableUsers;
 use App\Actions\Groups\RemoveMember;
+use App\Actions\Groups\SearchGroupMembers;
 use App\Actions\Groups\UpdateMember;
+use App\Http\Requests\IndexGroupMembersRequest;
 use App\Http\Requests\StoreGroupMemberRequest;
 use App\Http\Requests\UpdateGroupMemberRequest;
 use App\Models\Group;
@@ -25,6 +27,16 @@ class GroupMemberController extends Controller
 
         return response()->json(
             $listAssignableUsers->execute($group, $request->string('search')->toString() ?: null)
+        );
+    }
+
+    /**
+     * Paginate and search the group's member roster.
+     */
+    public function index(IndexGroupMembersRequest $request, Group $group, SearchGroupMembers $searchGroupMembers): JsonResponse
+    {
+        return response()->json(
+            $searchGroupMembers->execute($group, $request->string('search')->toString() ?: null)
         );
     }
 

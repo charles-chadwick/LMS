@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\Courses\AssignInstructors;
 use App\Actions\Courses\ListAssignableInstructors;
 use App\Actions\Courses\RemoveInstructor;
+use App\Actions\Courses\SearchCourseInstructors;
+use App\Http\Requests\IndexCourseRosterRequest;
 use App\Http\Requests\StoreCourseInstructorRequest;
 use App\Models\Course;
 use App\Models\User;
@@ -23,6 +25,16 @@ class CourseInstructorController extends Controller
 
         return response()->json(
             $listAssignableInstructors->execute($course, $request->string('search')->toString() ?: null)
+        );
+    }
+
+    /**
+     * Paginate and search the course's enrolled instructor roster.
+     */
+    public function index(IndexCourseRosterRequest $request, Course $course, SearchCourseInstructors $searchCourseInstructors): JsonResponse
+    {
+        return response()->json(
+            $searchCourseInstructors->execute($course, $request->string('search')->toString() ?: null)
         );
     }
 

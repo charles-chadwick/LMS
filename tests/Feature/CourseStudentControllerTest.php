@@ -12,6 +12,34 @@ use Illuminate\Support\Collection;
 
 uses(LazilyRefreshDatabase::class);
 
+it('paginates and searches the student roster for a manager', function () {
+    $course = Course::factory()->create();
+    $instructor = userWithRole(UserRole::Instructor);
+    $course->instructors()->attach($instructor, ['is_instructor' => true]);
+
+    $enrolled = userWithRole(UserRole::Student);
+    $course->students()->attach($enrolled, ['is_instructor' => false]);
+
+    $match = userWithRole(UserRole::Student);
+    $match->update(['first_name' => 'Rosterable', 'last_name' => 'Person']);
+    $course->students()->attach($match, ['is_instructor' => false]);
+
+    $response = $this->actingAs(userWithRole(UserRole::Admin))
+        ->getJson(route('courses.students.index', ['course' => $course, 'search' => 'Rosterable']));
+
+    $response->assertOk();
+    $ids = collect($response->json('data'))->pluck('id');
+    expect($ids)->toContain($match->id)->not->toContain($enrolled->id);
+});
+
+it('forbids a non-manager from listing the student roster', function () {
+    $course = Course::factory()->create();
+
+    $this->actingAs(userWithRole(UserRole::Student))
+        ->getJson(route('courses.students.index', $course))
+        ->assertForbidden();
+});
+
 it('authorizes admins and assigned instructors to manage students', function () {
     $course = Course::factory()->create();
     $instructor = userWithRole(UserRole::Instructor);

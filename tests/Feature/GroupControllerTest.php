@@ -99,6 +99,31 @@ it('shows a group with its members', function () {
     );
 });
 
+it('paginates and searches the group member roster, exposing the is_leader pivot', function () {
+    $group = Group::factory()->general()->create();
+    $leader = userWithRole(UserRole::Student);
+    $group->users()->attach($leader, ['is_leader' => true]);
+
+    $match = userWithRole(UserRole::Instructor);
+    $match->update(['first_name' => 'Rosterable', 'last_name' => 'Person']);
+    $group->users()->attach($match, ['is_leader' => false]);
+
+    $response = $this->getJson(route('groups.members.index', ['group' => $group, 'search' => 'Rosterable']));
+
+    $response->assertOk();
+    $rows = collect($response->json('data'));
+    expect($rows->pluck('id'))->toContain($match->id)->not->toContain($leader->id);
+    expect($rows->firstWhere('id', $match->id))->toHaveKey('pivot.is_leader');
+});
+
+it('forbids a non-admin from listing the group member roster', function () {
+    $group = Group::factory()->general()->create();
+
+    $this->actingAs(userWithRole(UserRole::Student))
+        ->getJson(route('groups.members.index', $group))
+        ->assertForbidden();
+});
+
 it('searches assignable members, including instructors and students but excluding existing members', function () {
     $group = Group::factory()->general()->create();
     $member = userWithRole(UserRole::Student);
