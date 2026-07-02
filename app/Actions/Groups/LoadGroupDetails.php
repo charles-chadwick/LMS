@@ -19,6 +19,7 @@ class LoadGroupDetails
                 $query->select('users.id', 'users.first_name', 'users.last_name', 'users.email')
                     ->with('media')
                     ->orderBy('first_name')
+                    ->orderBy('users.id')
                     ->limit(25);
             },
         ]);

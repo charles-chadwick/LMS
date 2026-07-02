@@ -250,6 +250,29 @@ it('loads only the first page of the student roster with the full count', functi
             ->where('course.students_count', 30));
 });
 
+it('tie-breaks the student roster ordering by id when first names are identical', function () {
+    $course = Course::factory()->create();
+    $instructor = userWithRole(UserRole::Instructor);
+    $course->instructors()->attach($instructor, ['is_instructor' => true]);
+
+    $students = collect(range(1, 30))->map(fn () => User::factory()->create([
+        'role' => UserRole::Student,
+        'first_name' => 'Zoe',
+    ]));
+    $students->reverse()->each(fn ($student) => $course->students()->attach($student, ['is_instructor' => false]));
+
+    $expected_ids = $students->pluck('id')->sort()->values()->take(25)->all();
+
+    $this->actingAs($instructor)
+        ->get(route('courses.show', $course))
+        ->assertInertia(function (Assert $page) use ($expected_ids) {
+            $page->has('course.students', 25);
+
+            $returned_ids = collect($page->toArray()['props']['course']['students'])->pluck('id')->all();
+            expect($returned_ids)->toBe($expected_ids);
+        });
+});
+
 it('updates a course', function () {
     $course = Course::factory()->create(['title' => 'Old Title']);
 

@@ -28,11 +28,11 @@ class LoadCourseDetails
             },
             'instructors' => function ($query) {
                 $query->select('users.id', 'users.first_name', 'users.last_name', 'users.email')
-                    ->with('media')->orderBy('first_name')->limit(25);
+                    ->with('media')->orderBy('first_name')->orderBy('users.id')->limit(25);
             },
             'students' => function ($query) {
                 $query->select('users.id', 'users.first_name', 'users.last_name', 'users.email')
-                    ->with('media')->orderBy('first_name')->limit(25);
+                    ->with('media')->orderBy('first_name')->orderBy('users.id')->limit(25);
             },
             'created_by:id,first_name,last_name',
             'updated_by:id,first_name,last_name',

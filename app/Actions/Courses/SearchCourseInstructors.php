@@ -20,6 +20,7 @@ class SearchCourseInstructors
                 ->orWhere('email', 'like', "%{$term}%")))
             ->with('media')
             ->orderBy('first_name')
+            ->orderBy('users.id')
             ->paginate($perPage, ['users.id', 'users.first_name', 'users.last_name', 'users.email']);
     }
 }
