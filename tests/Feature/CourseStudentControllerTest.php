@@ -2,6 +2,7 @@
 
 use App\Actions\Courses\AssignStudent;
 use App\Actions\Courses\AssignStudents;
+use App\Actions\Courses\EnrollGroups;
 use App\Actions\Courses\RemoveStudent;
 use App\Enums\UserRole;
 use App\Models\Course;
@@ -228,6 +229,23 @@ it('skips a user who already instructs the course without adding them as a stude
     expect($course->students()->whereKey($dual_role->id)->exists())->toBeFalse();
 });
 
+it('enrolls the student members of several groups into a course', function () {
+    $course = Course::factory()->create();
+    $group_one = Group::factory()->create();
+    $group_two = Group::factory()->create();
+    $student_one = userWithRole(UserRole::Student);
+    $student_two = userWithRole(UserRole::Student);
+    $group_one->users()->attach($student_one, ['is_leader' => false]);
+    $group_two->users()->attach($student_two, ['is_leader' => false]);
+
+    $count = app(EnrollGroups::class)->execute(
+        $course, new Collection([$group_one, $group_two])
+    );
+
+    expect($count)->toBe(2)
+        ->and($course->students()->count())->toBe(2);
+});
+
 it('lets a manager bulk-enroll a group as students', function () {
     [$course] = courseWithManager();
     $group = Group::factory()->create();
@@ -236,7 +254,7 @@ it('lets a manager bulk-enroll a group as students', function () {
     $group->users()->attach([$first_member->id, $second_member->id], ['is_leader' => false]);
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
-        ->post(route('courses.students.storeGroup', $course), ['group_id' => $group->id]);
+        ->post(route('courses.students.storeGroup', $course), ['group_ids' => [$group->id]]);
 
     $response->assertRedirect(route('courses.show', $course));
     $response->assertSessionHas('success');
@@ -250,7 +268,7 @@ it('forbids a non-manager from bulk-enrolling a group', function () {
     $group->users()->attach($member, ['is_leader' => false]);
 
     $response = $this->actingAs(userWithRole(UserRole::Instructor))
-        ->post(route('courses.students.storeGroup', $course), ['group_id' => $group->id]);
+        ->post(route('courses.students.storeGroup', $course), ['group_ids' => [$group->id]]);
 
     $response->assertForbidden();
     expect($course->students()->count())->toBe(0);
@@ -260,9 +278,9 @@ it('rejects bulk-enrolling a non-existent group', function () {
     [$course] = courseWithManager();
 
     $response = $this->actingAs(userWithRole(UserRole::Admin))
-        ->post(route('courses.students.storeGroup', $course), ['group_id' => 99999]);
+        ->post(route('courses.students.storeGroup', $course), ['group_ids' => [99999]]);
 
-    $response->assertSessionHasErrors('group_id');
+    $response->assertSessionHasErrors('group_ids.*');
 });
 
 it('searches assignable groups for a manager, filtered by the search term', function () {

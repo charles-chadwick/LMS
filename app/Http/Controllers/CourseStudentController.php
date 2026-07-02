@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Courses\AssignStudents;
-use App\Actions\Courses\EnrollGroupMembers;
+use App\Actions\Courses\EnrollGroups;
 use App\Actions\Courses\ListAssignableGroups;
 use App\Actions\Courses\ListAssignableStudents;
 use App\Actions\Courses\RemoveStudent;
@@ -59,15 +59,15 @@ class CourseStudentController extends Controller
     /**
      * Bulk-enroll a group's current members in the course as students.
      */
-    public function storeGroup(StoreCourseGroupStudentsRequest $request, Course $course, EnrollGroupMembers $enrollGroupMembers): RedirectResponse
+    public function storeGroup(StoreCourseGroupStudentsRequest $request, Course $course, EnrollGroups $enrollGroups): RedirectResponse
     {
-        $group = Group::findOrFail($request->validated()['group_id']);
+        $groups = Group::findMany($request->validated()['group_ids']);
 
-        $enrolled_count = $enrollGroupMembers->execute($course, $group);
+        $enrolled_count = $enrollGroups->execute($course, $groups);
 
         return redirect()
             ->route('courses.show', $course)
-            ->with('success', "{$enrolled_count} member(s) enrolled from {$group->name}.");
+            ->with('success', "{$enrolled_count} member(s) enrolled from the selected group(s).");
     }
 
     /**

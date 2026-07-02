@@ -23,11 +23,8 @@ class StoreCourseGroupStudentsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'group_id' => [
-                'required',
-                'integer',
-                'exists:groups,id',
-            ],
+            'group_ids' => ['required', 'array', 'min:1'],
+            'group_ids.*' => ['integer', 'exists:groups,id'],
         ];
     }
 }
